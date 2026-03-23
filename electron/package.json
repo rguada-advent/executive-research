@@ -1,0 +1,62 @@
+{
+  "name": "psg-executive-intelligence",
+  "version": "1.0.0",
+  "description": "PSG Human Capital Executive Intelligence - Talent Discovery & Forensic Background Analysis",
+  "main": "main.js",
+  "author": "PSG Human Capital",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win",
+    "dist:portable": "electron-builder --win portable"
+  },
+  "dependencies": {
+    "electron-is-dev": "^2.0.0"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.psg.executive-intelligence",
+    "productName": "PSG Executive Intelligence",
+    "copyright": "Copyright © 2026 PSG Human Capital",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "PSG Executive Intelligence"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "frontend/**/*",
+      "backend/**/*",
+      "python/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../backend",
+        "to": "backend",
+        "filter": ["**/*", "!__pycache__/**", "!*.pyc", "!tests/**", "!.pytest_cache/**"]
+      },
+      {
+        "from": "../frontend/dist",
+        "to": "frontend"
+      }
+    ],
+    "asar": false
+  }
+}

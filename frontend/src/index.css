@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --color-advent-navy: #022479;
+  --color-advent-gold: #e1b523;
+  --color-advent-blue: #0d42ff;
+  --color-advent-cyan: #77ceff;
+  --color-advent-bg: #f5f2eb;
+  --color-advent-text: #0d0d0d;
+  --color-advent-gray-75: #f5f2eb;
+  --color-advent-gray-200: #eeeeee;
+  --color-advent-gray-350: #c7c7c7;
+  --color-advent-gray-500: #767676;
+  --color-advent-gray-700: #333333;
+  --color-risk-none: #16a34a;
+  --color-risk-low: #06b6d4;
+  --color-risk-medium: #d97706;
+  --color-risk-high: #dc2626;
+  --color-risk-critical: #991b1b;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--color-advent-bg);
+  color: var(--color-advent-text);
+}
+
+@media print {
+  header, .pipeline-tracker, .brief-tabs, .brief-header { display: none !important; }
+  .brief-doc { box-shadow: none; padding: 20px; }
+}
