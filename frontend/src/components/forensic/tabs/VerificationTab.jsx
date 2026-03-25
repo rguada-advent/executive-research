@@ -30,6 +30,19 @@ function BreakdownTag({ label, value }) {
   );
 }
 
+function SourceLink({ source }) {
+  if (!source) return null;
+  // Handle both string URLs and {url, title} objects
+  const url = typeof source === 'string' ? source : source.url;
+  const title = typeof source === 'string' ? source : (source.title || source.url || '');
+  if (!url) return null;
+  return (
+    <a href={url} target="_blank" rel="noreferrer" className="text-xs text-[#991b1b] hover:underline">
+      {title}
+    </a>
+  );
+}
+
 export default function VerificationTab({ verification: v }) {
   if (!v) {
     return (
@@ -38,6 +51,9 @@ export default function VerificationTab({ verification: v }) {
       </div>
     );
   }
+
+  // Detect if verification failed (returned empty defaults)
+  const isFailed = v.overallConfidenceScore === 0 && (v.verifiedFacts || []).length === 0 && !v.identityNotes;
 
   const conf = v.overallConfidenceScore ?? 0;
   const confPct = (conf * 100).toFixed(0);
@@ -48,6 +64,28 @@ export default function VerificationTab({ verification: v }) {
   const unver = (v.verifiedFacts || []).filter(f => f.confidence === 'UNVERIFIED').length;
   const contradictions = (v.contradictions || []).length;
   const redFlags = (v.redFlags || []).length;
+
+  // Collect all unique sources for the appendix
+  const allSources = [];
+  const seenUrls = new Set();
+  // From sourcesAppendix (dedicated field from agent)
+  for (const src of (v.sourcesAppendix || [])) {
+    const url = typeof src === 'string' ? src : src?.url;
+    if (url && !seenUrls.has(url)) { seenUrls.add(url); allSources.push(src); }
+  }
+  // From verified facts
+  for (const fact of (v.verifiedFacts || [])) {
+    for (const src of (fact.sources || [])) {
+      const url = typeof src === 'string' ? src : src?.url;
+      if (url && !seenUrls.has(url)) { seenUrls.add(url); allSources.push(src); }
+    }
+  }
+  // From red flags
+  for (const rf of (v.redFlags || [])) {
+    const src = rf.source;
+    const url = typeof src === 'string' ? src : src?.url;
+    if (url && !seenUrls.has(url)) { seenUrls.add(url); allSources.push(src); }
+  }
 
   return (
     <div className="bg-white rounded-xl border border-advent-gray-200 p-8 space-y-6">
@@ -69,6 +107,13 @@ export default function VerificationTab({ verification: v }) {
         </div>
       </div>
 
+      {/* Failure notice */}
+      {isFailed && (
+        <div className="px-4 py-3 bg-risk-medium/10 border border-risk-medium/30 rounded-lg text-sm text-[#92400e]">
+          <strong>Verification incomplete:</strong> The verification agent was unable to produce results after multiple attempts. This may be due to rate limiting or response parsing issues. The report below is based on unverified data.
+        </div>
+      )}
+
       {/* Identity */}
       {v.identityNotes && (
         <div className="px-4 py-3 bg-risk-none/5 border border-risk-none/30 rounded-lg text-sm text-[#166534]">
@@ -85,6 +130,11 @@ export default function VerificationTab({ verification: v }) {
               <div key={i} className="px-4 py-2.5 bg-risk-high/5 border border-risk-high/20 rounded-lg">
                 <div className="font-semibold text-sm text-risk-high">[{(r.severity || '').toUpperCase()}] {r.flag}</div>
                 {r.details && <div className="text-sm text-[#374151] mt-1">{r.details}</div>}
+                {r.source && (
+                  <div className="mt-1">
+                    <SourceLink source={r.source} />
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -107,15 +157,25 @@ export default function VerificationTab({ verification: v }) {
         </div>
       )}
 
-      {/* Fact Details */}
+      {/* Fact Details with inline source links */}
       {(v.verifiedFacts || []).length > 0 && (
         <div>
           <h3 className="text-base font-bold text-[#991b1b] mb-3">Fact Details</h3>
           <div className="grid gap-2">
             {v.verifiedFacts.map((f, i) => (
-              <div key={i} className="flex items-center gap-2.5 px-3 py-2 bg-advent-gray-75 rounded">
-                <FactBadge confidence={f.confidence} />
-                <span className="text-sm text-[#374151] flex-1">{f.claim}</span>
+              <div key={i} className="px-3 py-2 bg-advent-gray-75 rounded">
+                <div className="flex items-center gap-2.5">
+                  <FactBadge confidence={f.confidence} />
+                  <span className="text-sm text-[#374151] flex-1">{f.claim}</span>
+                </div>
+                {(f.sources || []).length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-1.5 ml-[72px]">
+                    {f.sources.map((src, j) => (
+                      <SourceLink key={j} source={src} />
+                    ))}
+                  </div>
+                )}
+                {f.notes && <div className="text-xs text-advent-gray-500 mt-1 ml-[72px]">{f.notes}</div>}
               </div>
             ))}
           </div>
@@ -146,20 +206,27 @@ export default function VerificationTab({ verification: v }) {
         </div>
       )}
 
-      {/* Sources Appendix */}
-      {(v.verifiedFacts || []).some(f => (f.sources || []).length > 0) && (
+      {/* Sources Appendix — aggregated from all sources */}
+      {allSources.length > 0 && (
         <div>
-          <h3 className="text-base font-bold text-[#991b1b] mb-3">Sources Appendix</h3>
-          <div className="space-y-1">
-            {v.verifiedFacts
-              .flatMap(f => f.sources || [])
-              .filter(Boolean)
-              .filter((s, i, arr) => arr.indexOf(s) === i)
-              .map((src, i) => (
-                <a key={i} href={src} target="_blank" rel="noreferrer" className="block text-xs text-[#991b1b] hover:underline truncate">
-                  {src}
-                </a>
-              ))}
+          <h3 className="text-base font-bold text-[#991b1b] mb-3">Sources ({allSources.length})</h3>
+          <div className="space-y-1.5">
+            {allSources.map((src, i) => {
+              const url = typeof src === 'string' ? src : src.url;
+              const title = typeof src === 'string' ? src : (src.title || src.url);
+              const relevance = typeof src === 'object' ? src.relevance : null;
+              return (
+                <div key={i} className="flex items-start gap-2">
+                  <span className="text-xs text-advent-gray-400 mt-0.5 shrink-0">{i + 1}.</span>
+                  <div className="min-w-0">
+                    <a href={url} target="_blank" rel="noreferrer" className="text-xs text-[#991b1b] hover:underline break-all">
+                      {title}
+                    </a>
+                    {relevance && <span className="text-[10px] text-advent-gray-500 ml-2">— {relevance}</span>}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
