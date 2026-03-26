@@ -64,7 +64,7 @@ function startBackend() {
     }
 
     // Start Flask server
-    const env = { ...process.env, FLASK_ENV: 'production', PYTHONDONTWRITEBYTECODE: '1' };
+    const env = { ...process.env, FLASK_ENV: 'production', PYTHONDONTWRITEBYTECODE: '1', PSG_USER_DATA: app.getPath('userData') };
     pythonProcess = spawn(python, [serverScript], {
       cwd: backendDir,
       env,

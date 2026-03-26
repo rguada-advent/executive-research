@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { callClaude } from '../../services/claudeApi';
 
 export default function SpecUpload() {
   const { state, dispatch, toast } = useApp();
@@ -17,12 +18,6 @@ export default function SpecUpload() {
     setLoading(true);
     setStatus('Analyzing spec...');
     try {
-      const headers = {
-        'Content-Type': 'application/json',
-        'x-api-key': state.apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      };
       const prompt = `You are an expert recruiting specification analyst. Deconstruct this job description into structured requirements.
 
 ${calibration ? 'SENIORITY CALIBRATION:\n' + calibration + '\n\n' : ''}=== RECRUITING SPECIFICATION ===
@@ -30,18 +25,10 @@ ${specText.slice(0, 30000)}
 
 Return ONLY valid JSON:
 {"roleSummary":"...","mustHave":[{"requirement":"...","category":"leadership|industry|functional|education|geographic|compensation"}],"niceToHave":[{"requirement":"...","category":"..."}],"redFlags":["..."],"industryContext":["..."],"targetCompanies":["..."],"keyQuestionAreas":["..."],"evaluationWeights":{"leadership":1.0,"industry":1.0,"functional":1.0,"education":0.5,"trackRecord":1.0,"culture":0.8,"governance":0.5,"network":0.6,"geographic":0.3,"compensation":0.7}}`;
-      const body = {
-        model: state.model,
-        max_tokens: 4096,
-        system: 'You are an executive recruiting specialist.',
-        messages: [{ role: 'user', content: prompt }],
-      };
-      const r = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST', headers, body: JSON.stringify(body),
-      });
-      if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error?.message || `API error ${r.status}`); }
-      const data = await r.json();
-      const text = data.content.filter(c => c.type === 'text').map(c => c.text).join('');
+      const text = await callClaude(
+        [{ role: 'user', content: prompt }],
+        { model: state.model, maxTokens: 4096, system: 'You are an executive recruiting specialist.' }
+      );
       const match = text.match(/\{[\s\S]*\}/);
       if (!match) throw new Error('Could not parse spec analysis.');
       const analysis = JSON.parse(match[0]);

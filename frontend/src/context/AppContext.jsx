@@ -1,11 +1,15 @@
-import { createContext, useContext, useReducer, useCallback } from 'react';
+import { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
 import { MODES } from '../utils/constants';
 
 const AppContext = createContext(null);
 
+// API key lives on the backend (psg_config.json) — not in sessionStorage.
+// '(configured)' is a UI sentinel meaning "backend has a key, but we don't expose it here".
+const BACKEND = window.psgApp?.isElectron ? 'http://127.0.0.1:5001' : '/api';
+
 const initialState = {
   mode: MODES.FORENSIC,
-  apiKey: sessionStorage.getItem('psg_api_key') || '',
+  apiKey: '',         // '' = not set, '(configured)' = saved on backend, real key = being entered
   model: 'claude-sonnet-4-6',
   clToken: sessionStorage.getItem('psg_cl_token') || '',
   linkedin: {},
@@ -24,7 +28,7 @@ function reducer(state, action) {
   switch (action.type) {
     case 'SET_MODE': return { ...state, mode: action.payload };
     case 'SET_API_KEY':
-      sessionStorage.setItem('psg_api_key', action.payload);
+      // No sessionStorage — key is persisted server-side via useEffect below
       return { ...state, apiKey: action.payload };
     case 'SET_MODEL': return { ...state, model: action.payload };
     case 'SET_CL_TOKEN':
@@ -87,6 +91,38 @@ export function AppProvider({ children }) {
     dispatch({ type: 'ADD_TOAST', payload: { id, message: msg } });
     setTimeout(() => dispatch({ type: 'REMOVE_TOAST', payload: id }), 3000);
   }, []);
+
+  // On mount: check if backend already has a key configured from a previous session
+  useEffect(() => {
+    fetch(`${BACKEND}/claude/status`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.configured) {
+          dispatch({ type: 'SET_API_KEY', payload: '(configured)' });
+        }
+      })
+      .catch(() => {}); // backend not yet ready — silently ignore, user can enter key manually
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // When user enters a new real key, persist it to the backend
+  useEffect(() => {
+    const key = state.apiKey;
+    if (!key || key === '(configured)') return;
+    fetch(`${BACKEND}/claude/config`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey: key }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status === 'ok') {
+          // Replace plaintext key with sentinel so it's not exposed in state
+          dispatch({ type: 'SET_API_KEY', payload: '(configured)' });
+        }
+      })
+      .catch(() => {}); // persist failure is non-fatal; key is still in-memory for this session
+  }, [state.apiKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <AppContext.Provider value={{ state, dispatch, toast }}>
       {children}

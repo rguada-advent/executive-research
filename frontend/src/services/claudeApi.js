@@ -1,20 +1,23 @@
+// All Claude API calls are proxied through the local Flask backend at localhost:5001.
+// The Anthropic API key lives only on the backend side — never in the browser.
+const BACKEND_BASE = window.psgApp?.isElectron
+  ? 'http://127.0.0.1:5001'
+  : '/api';
+
 const SYSTEM_PROMPTS = {
   forensic: 'You are a forensic background intelligence analyst. Be thorough, skeptical, and precise. Cite sources for every claim. Flag any concerns immediately.',
   talent: 'You are an executive talent intelligence analyst for a top-tier executive search firm. Be thorough, accurate, and insightful. Never fabricate information.',
 };
 
 export async function callClaude(messages, {
-  apiKey, model = 'claude-sonnet-4-6', stream = false,
+  apiKey,           // kept in signature for backward compat with 20+ call sites — not used
+  model = 'claude-sonnet-4-6', stream = false,
   webSearch = false, maxTokens = 16384, signal,
   searchUses = 10, system, mode = 'forensic',
 } = {}) {
-  if (!apiKey) throw new Error('Please enter your API key');
-
   const headers = {
     'Content-Type': 'application/json',
-    'x-api-key': apiKey,
     'anthropic-version': '2023-06-01',
-    'anthropic-dangerous-direct-browser-access': 'true',
   };
   if (webSearch) headers['anthropic-beta'] = 'web-search-2025-03-05';
 
@@ -29,13 +32,13 @@ export async function callClaude(messages, {
   }
   if (stream) body.stream = true;
 
-  const r = await fetch('https://api.anthropic.com/v1/messages', {
+  const r = await fetch(`${BACKEND_BASE}/claude/messages`, {
     method: 'POST', headers, body: JSON.stringify(body), signal,
   });
 
   if (!r.ok) {
     const e = await r.json().catch(() => ({}));
-    throw new Error(e.error?.message || `API error ${r.status}`);
+    throw new Error(e.error?.message || e.error || `API error ${r.status}`);
   }
 
   if (stream) return r;

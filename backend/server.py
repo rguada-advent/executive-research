@@ -12,8 +12,8 @@ def register_blueprints():
     """Register route blueprints. Each is optional — server starts even if missing."""
     blueprints = [
         ("routes.proxy", "proxy_bp"),
-        ("routes.linkedin", "linkedin_bp"),
         ("routes.glassdoor", "glassdoor_bp"),
+        ("routes.claude", "claude_bp"),
     ]
     for module_path, bp_name in blueprints:
         try:

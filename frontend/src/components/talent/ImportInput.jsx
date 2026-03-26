@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
+import { callClaude } from '../../services/claudeApi';
 
 async function loadPdfjsFromCdn() {
   if (window.pdfjsLib) return window.pdfjsLib;
@@ -58,30 +59,16 @@ export default function ImportInput({ onImported }) {
     try {
       const text = await parseFileContent(file);
       setStatus('Extracting executive names with AI...');
-      const headers = {
-        'Content-Type': 'application/json',
-        'x-api-key': state.apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      };
       const prompt = `Analyze this text and extract all leadership/executive team members.
 For each person return: name, title, seniority (one of: c-suite, svp, vp, director, other).
 Return ONLY a valid JSON array. Example: [{"name":"Jane Doe","title":"CEO","seniority":"c-suite"}]
 
 Text:
 ${text.slice(0, 25000)}`;
-      const body = {
-        model: state.model,
-        max_tokens: 4096,
-        system: 'You are an executive research analyst. Extract names accurately.',
-        messages: [{ role: 'user', content: prompt }],
-      };
-      const r = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST', headers, body: JSON.stringify(body),
-      });
-      if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error?.message || `API error ${r.status}`); }
-      const data = await r.json();
-      const resText = data.content.filter(c => c.type === 'text').map(c => c.text).join('');
+      const resText = await callClaude(
+        [{ role: 'user', content: prompt }],
+        { model: state.model, maxTokens: 4096, system: 'You are an executive research analyst. Extract names accurately.' }
+      );
       const match = resText.match(/\[[\s\S]*\]/);
       if (!match) throw new Error('Could not parse leaders from file.');
       const leaders = JSON.parse(match[0]);

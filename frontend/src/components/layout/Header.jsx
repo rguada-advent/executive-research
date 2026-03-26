@@ -24,9 +24,9 @@ export default function Header() {
         <label className="text-xs text-advent-gray-350">API Key</label>
         <input
           type="password"
-          value={state.apiKey}
+          value={state.apiKey === '(configured)' ? '' : state.apiKey}
           onChange={e => dispatch({ type: 'SET_API_KEY', payload: e.target.value })}
-          placeholder="sk-ant-..."
+          placeholder={state.apiKey === '(configured)' ? '● API key saved' : 'sk-ant-...'}
           className="bg-advent-navy border border-advent-gray-500 text-white px-2 py-1.5 rounded text-sm w-56"
         />
         <label className="text-xs text-advent-gold">CourtListener</label>
