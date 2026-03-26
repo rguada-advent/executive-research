@@ -61,16 +61,19 @@ Return ONLY valid JSON:
     try {
       const result = await callClaude(
         [{ role: 'user', content: prompt }],
-        { apiKey, model, webSearch: true, maxTokens: 6144, signal, searchUses: 10 }
+        { apiKey, model, webSearch: true, maxTokens: 16384, signal, searchUses: 10 }
       );
 
-      const match = result.match(/\{[\s\S]*\}/);
+      // Try code-fenced JSON block first, then fall back to bare brace match
+      const fenced = result.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+      const bare = result.match(/\{[\s\S]*\}/);
+      const match = fenced ? fenced[1] : (bare ? bare[0] : null);
       if (!match) {
         lastError = new Error('Verification returned no JSON output');
         continue;
       }
       try {
-        return JSON.parse(match[0]);
+        return JSON.parse(match);
       } catch (parseErr) {
         lastError = parseErr;
         // Retry on parse failure
