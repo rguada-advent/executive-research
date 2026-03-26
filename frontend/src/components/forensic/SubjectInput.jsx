@@ -86,7 +86,7 @@ export default function SubjectInput({ onStart }) {
     <div className="bg-white rounded-xl border border-advent-gray-200 p-6 mb-4">
       <h2 className="text-base font-bold text-advent-navy flex items-center gap-2 mb-1">
         <span className="w-1 h-[18px] bg-advent-navy rounded" />
-        Subjects for Investigation
+        Executive Research
       </h2>
       <p className="text-sm text-advent-gray-500 mb-4">
         Add executives for forensic background investigation. Each subject will be researched across professional history, social media, legal databases, regulatory filings, and verified by an adversarial agent.
