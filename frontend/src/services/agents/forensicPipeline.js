@@ -120,7 +120,7 @@ export async function runForensicPipeline(leader, {
     onSearch?.(true, 'Verifying facts');
     try {
       const pipeSnashot = { professional, contact, social, glassdoor, legal, regulatory, linkedin: linkedinResult };
-      const verification = await withRetry(() => agentVerification(leader, pipeSnashot, { apiKey, model, signal }), 1);
+      const verification = await agentVerification(leader, pipeSnashot, { apiKey, model, signal });
       onSearch?.(false);
       update({ verification, overallConfidence: verification.overallConfidenceScore });
       markCompleted(4);

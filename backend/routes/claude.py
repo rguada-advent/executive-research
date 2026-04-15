@@ -4,12 +4,76 @@ The Anthropic API key lives only in the backend (psg_config.json) —
 the browser never sees it.
 """
 from flask import Blueprint, request, jsonify, Response, stream_with_context
+import re
 import requests as http_requests
 from services.claude_config import get_api_key, save_api_key
 
 claude_bp = Blueprint("claude", __name__, url_prefix="/claude")
 
 ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
+
+# Valid Anthropic API key pattern: "sk-ant-" followed by alphanumeric/dash/underscore.
+# Length bounds (40–200 chars) catch obviously truncated or injected values.
+_API_KEY_RE = re.compile(r'^sk-ant-[A-Za-z0-9_\-]+$')
+_API_KEY_MIN_LEN = 40
+_API_KEY_MAX_LEN = 200
+
+# Per-message content truncation limit (characters). Prevents extremely large
+# user-supplied strings from being forwarded verbatim to Anthropic.
+_MAX_CONTENT_CHARS = 50_000
+
+
+def _validate_api_key_format(key: str) -> str | None:
+    """Return an error string if the key is malformed, else None."""
+    if len(key) < _API_KEY_MIN_LEN or len(key) > _API_KEY_MAX_LEN:
+        return f"Invalid API key length (must be {_API_KEY_MIN_LEN}–{_API_KEY_MAX_LEN} characters)"
+    if not _API_KEY_RE.match(key):
+        return "Invalid API key format — must match sk-ant-[alphanumeric/dash/underscore]"
+    return None
+
+
+def _sanitize_messages(messages: list) -> tuple[list, list]:
+    """
+    Validate structure and truncate oversized content blocks.
+
+    Returns (sanitized_messages, warnings).  Raises ValueError on structural
+    problems that should hard-fail the request.
+    """
+    if not isinstance(messages, list):
+        raise ValueError("'messages' must be an array")
+
+    warnings = []
+    sanitized = []
+
+    for idx, msg in enumerate(messages):
+        if not isinstance(msg, dict):
+            raise ValueError(f"Message at index {idx} must be an object")
+        if "role" not in msg or "content" not in msg:
+            raise ValueError(f"Message at index {idx} must have 'role' and 'content' fields")
+
+        content = msg["content"]
+
+        # content can be a plain string or an array of content blocks (Anthropic spec)
+        if isinstance(content, str):
+            if len(content) > _MAX_CONTENT_CHARS:
+                warnings.append(f"Message {idx} content truncated from {len(content)} to {_MAX_CONTENT_CHARS} chars")
+                content = content[:_MAX_CONTENT_CHARS]
+            sanitized.append({**msg, "content": content})
+        elif isinstance(content, list):
+            sanitized_blocks = []
+            for bidx, block in enumerate(content):
+                if isinstance(block, dict) and isinstance(block.get("text"), str):
+                    text = block["text"]
+                    if len(text) > _MAX_CONTENT_CHARS:
+                        warnings.append(f"Message {idx} block {bidx} text truncated from {len(text)} to {_MAX_CONTENT_CHARS} chars")
+                        block = {**block, "text": text[:_MAX_CONTENT_CHARS]}
+                sanitized_blocks.append(block)
+            sanitized.append({**msg, "content": sanitized_blocks})
+        else:
+            # Unknown content shape — pass through unchanged (don't break future API extensions)
+            sanitized.append(msg)
+
+    return sanitized, warnings
 
 
 @claude_bp.route("/messages", methods=["POST"])
@@ -20,6 +84,15 @@ def messages():
         return jsonify({"error": "API key not configured. Enter your Anthropic API key in the app header."}), 401
 
     body = request.get_json(silent=True) or {}
+
+    # --- Structural validation + content truncation (prompt-injection mitigation) ---
+    if "messages" not in body:
+        return jsonify({"error": "Request body must include a 'messages' array"}), 400
+    try:
+        sanitized_messages, _warnings = _sanitize_messages(body["messages"])
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    body = {**body, "messages": sanitized_messages}
 
     upstream_headers = {
         "Content-Type": "application/json",
@@ -75,8 +148,10 @@ def config():
     """Save the Anthropic API key to persistent storage."""
     data = request.get_json(silent=True) or {}
     key = data.get("apiKey", "").strip()
-    if key and not key.startswith("sk-ant-"):
-        return jsonify({"error": "Invalid API key format — must start with sk-ant-"}), 400
+    if key:
+        err = _validate_api_key_format(key)
+        if err:
+            return jsonify({"error": err}), 400
     save_api_key(key)
     return jsonify({"status": "ok", "configured": bool(key)})
 

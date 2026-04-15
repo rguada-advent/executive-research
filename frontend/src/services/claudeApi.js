@@ -9,16 +9,21 @@ const SYSTEM_PROMPTS = {
   talent: 'You are an executive talent intelligence analyst for a top-tier executive search firm. Be thorough, accurate, and insightful. Never fabricate information.',
 };
 
+// Per-session auth token injected by the Electron preload via contextBridge.
+// Must be included in every Flask API request so the backend enforces
+// that only the Electron renderer (not other local processes) can call it.
+function localAuthHeaders() {
+  const token = window.psgApp?.localToken;
+  return token ? { 'X-PSG-Local-Token': token } : {};
+}
+
 export async function callClaude(messages, {
   apiKey,           // kept in signature for backward compat with 20+ call sites — not used
   model = 'claude-sonnet-4-6', stream = false,
   webSearch = false, maxTokens = 16384, signal,
   searchUses = 10, system, mode = 'forensic',
 } = {}) {
-  const headers = {
-    'Content-Type': 'application/json',
-    'anthropic-version': '2023-06-01',
-  };
+  const headers = { 'Content-Type': 'application/json', ...localAuthHeaders() };
   if (webSearch) headers['anthropic-beta'] = 'web-search-2025-03-05';
 
   const body = {

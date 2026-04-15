@@ -35,10 +35,7 @@ export default function QuestionsTab({ questions, loading, onRunQuestions, specL
 
   return (
     <div className="bg-white rounded-xl border border-advent-gray-200 p-8">
-      <MarkdownRenderer
-        content={questions}
-        className="prose-h1:text-xl prose-h1:text-advent-navy prose-h1:mb-2 prose-h2:text-[17px] prose-h2:text-advent-blue prose-h2:mt-6 prose-h2:mb-2 prose-h2:pb-1 prose-h2:border-b-2 prose-h2:border-advent-gray-200 prose-h3:text-[15px] prose-h3:text-gray-800 prose-h3:mt-4 prose-h3:mb-1 prose-ol:ml-5 prose-ul:ml-5 prose-li:my-1.5 prose-em:text-xs prose-em:text-gray-500 leading-relaxed text-[15px] text-gray-800"
-      />
+      <MarkdownRenderer content={questions} />
     </div>
   );
 }

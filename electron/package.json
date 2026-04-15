@@ -1,6 +1,6 @@
 {
   "name": "psg-executive-intelligence",
-  "version": "1.0.0",
+  "version": "1.5.3",
   "description": "PSG Human Capital Executive Intelligence - Talent Discovery & Forensic Background Analysis",
   "main": "main.js",
   "author": "PSG Human Capital",
@@ -37,7 +37,8 @@
       "allowToChangeInstallationDirectory": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "PSG Executive Intelligence"
+      "shortcutName": "PSG Executive Intelligence",
+      "guid": "C5B4E6A8-3D2F-4891-B567-8E9F0A1B2C3D"
     },
     "files": [
       "main.js",
@@ -57,6 +58,11 @@
         "to": "frontend"
       }
     ],
-    "asar": false
+    "asar": false,
+    "publish": {
+      "provider": "github",
+      "owner": "cuufan",
+      "repo": "psg-executive-intelligence"
+    }
   }
 }

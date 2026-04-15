@@ -29,3 +29,139 @@ body {
   header, .pipeline-tracker, .brief-tabs, .brief-header { display: none !important; }
   .brief-doc { box-shadow: none; padding: 20px; }
 }
+
+/* ─── PSG Report Body — centralized typography for AI-generated markdown ─── */
+.psg-report-body {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #1a1a2e;
+}
+
+.psg-report-body h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-advent-navy);
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--color-advent-gold);
+}
+
+.psg-report-body h2 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-advent-navy);
+  margin-top: 2rem;
+  margin-bottom: 0.6rem;
+  padding-left: 0.75rem;
+  border-left: 3px solid var(--color-advent-gold);
+}
+
+.psg-report-body h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-advent-navy);
+  margin-top: 1.25rem;
+  margin-bottom: 0.4rem;
+}
+
+.psg-report-body p {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  color: #1a1a2e;
+}
+
+.psg-report-body ul,
+.psg-report-body ol {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding-left: 1.4rem;
+}
+
+.psg-report-body ul {
+  list-style: none;
+  padding-left: 1rem;
+}
+
+.psg-report-body ul li {
+  position: relative;
+  padding-left: 1.1rem;
+  margin-bottom: 0.3rem;
+}
+
+.psg-report-body ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-advent-blue);
+  flex-shrink: 0;
+}
+
+.psg-report-body ol li {
+  margin-bottom: 0.3rem;
+}
+
+.psg-report-body strong {
+  font-weight: 700;
+  color: var(--color-advent-navy);
+}
+
+.psg-report-body em {
+  font-style: italic;
+  color: var(--color-advent-gray-500);
+}
+
+.psg-report-body a {
+  color: var(--color-advent-blue);
+  text-decoration: none;
+}
+
+.psg-report-body a:hover {
+  text-decoration: underline;
+}
+
+.psg-report-body hr {
+  border: none;
+  border-top: 1px solid var(--color-advent-gray-200);
+  margin: 1.5rem 0;
+}
+
+.psg-report-body blockquote {
+  border-left: 3px solid var(--color-advent-gold);
+  margin: 1rem 0;
+  padding: 0.4rem 0 0.4rem 1rem;
+  font-style: italic;
+  color: var(--color-advent-gray-500);
+}
+
+.psg-report-body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin: 1rem 0;
+}
+
+.psg-report-body table th {
+  background: var(--color-advent-navy);
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.psg-report-body table td {
+  padding: 0.45rem 0.75rem;
+  border-bottom: 1px solid var(--color-advent-gray-200);
+}
+
+.psg-report-body table tbody tr:nth-child(even) td {
+  background: var(--color-advent-bg);
+}
+
+.psg-report-body table tbody tr:nth-child(odd) td {
+  background: #ffffff;
+}

@@ -3,6 +3,7 @@ import { AppProvider, useApp } from './context/AppContext';
 import Header from './components/layout/Header';
 import ModeSelector from './components/layout/ModeSelector';
 import Toast from './components/layout/Toast';
+import PrivacyNotice from './components/layout/PrivacyNotice';
 import ForensicView from './components/forensic/ForensicView';
 import TalentView from './components/talent/TalentView';
 import { MODES } from './utils/constants';
@@ -58,6 +59,7 @@ function AppContent() {
         </ErrorBoundary>
       </main>
       <Toast />
+      <PrivacyNotice />
     </div>
   );
 }

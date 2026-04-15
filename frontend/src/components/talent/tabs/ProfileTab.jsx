@@ -21,10 +21,7 @@ export default function ProfileTab({ brief, loading }) {
 
   return (
     <div className="bg-white rounded-xl border border-advent-gray-200 p-8">
-      <MarkdownRenderer
-        content={brief}
-        className="prose-h1:text-2xl prose-h1:text-advent-navy prose-h1:mb-1 prose-h2:text-[17px] prose-h2:text-advent-blue prose-h2:mt-6 prose-h2:mb-2 prose-h2:pb-1 prose-h2:border-b-2 prose-h2:border-advent-gray-200 prose-h3:text-[15px] prose-h3:text-advent-navy prose-h3:mt-4 prose-h3:mb-1 prose-a:text-advent-blue prose-p:my-1.5 leading-relaxed text-[15px] text-gray-800"
-      />
+      <MarkdownRenderer content={brief} />
     </div>
   );
 }

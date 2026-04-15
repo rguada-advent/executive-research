@@ -7,10 +7,14 @@ import { callClaude } from '../claudeApi';
 export async function agentTalentResearch(leader, { apiKey, model, signal, searchUses = 8 }) {
   const company = leader.company ? ' at ' + leader.company : '';
 
-  const prompt = `You are an executive talent researcher. Do a quick professional lookup for ${leader.name}, ${leader.title}${company}.
+  const linkedinHint = leader.linkedinUrl
+    ? `\nNOTE: The LinkedIn profile URL for this executive is already known: ${leader.linkedinUrl}\nUse this URL directly — do not spend searches looking for their LinkedIn profile.\n`
+    : '';
 
+  const prompt = `You are an executive talent researcher. Do a quick professional lookup for ${leader.name}, ${leader.title}${company}.
+${linkedinHint}
 SEARCH STRATEGY:
-1. "${leader.name}" site:linkedin.com/in/
+1. ${leader.linkedinUrl ? `Visit ${leader.linkedinUrl} directly` : `"${leader.name}" site:linkedin.com/in/`}
 2. "${leader.name}" ${leader.company || ''} linkedin
 3. "${leader.name}" ${leader.title} ${leader.company || ''}
 

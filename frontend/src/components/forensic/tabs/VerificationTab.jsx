@@ -44,16 +44,28 @@ function SourceLink({ source }) {
 }
 
 export default function VerificationTab({ verification: v }) {
+  // No verification data at all — neutral placeholder
   if (!v) {
     return (
-      <div className="text-center py-12 text-advent-gray-500">
-        <p>Verification data will appear after investigation.</p>
+      <div className="bg-white rounded-xl border border-advent-gray-200 p-8 text-center text-advent-gray-500">
+        <p className="text-base">Verification data unavailable.</p>
+        <p className="text-sm mt-1">Run an investigation to generate a verification report.</p>
       </div>
     );
   }
 
-  // Detect if verification failed (returned empty defaults)
+  // Detect if verification returned empty defaults (single-attempt failure)
   const isFailed = v.overallConfidenceScore === 0 && (v.verifiedFacts || []).length === 0 && !v.identityNotes;
+
+  // If the single attempt returned empty data, show a clean neutral state — no alarming language
+  if (isFailed) {
+    return (
+      <div className="bg-white rounded-xl border border-advent-gray-200 p-8 text-center text-advent-gray-500">
+        <p className="text-base">Verification data unavailable.</p>
+        <p className="text-sm mt-1">The verification step did not return results for this investigation.</p>
+      </div>
+    );
+  }
 
   const conf = v.overallConfidenceScore ?? 0;
   const confPct = (conf * 100).toFixed(0);
@@ -106,13 +118,6 @@ export default function VerificationTab({ verification: v }) {
           </p>
         </div>
       </div>
-
-      {/* Failure notice */}
-      {isFailed && (
-        <div className="px-4 py-3 bg-risk-medium/10 border border-risk-medium/30 rounded-lg text-sm text-[#92400e]">
-          <strong>Verification incomplete:</strong> The verification agent was unable to produce results after multiple attempts. This may be due to rate limiting or response parsing issues. The report below is based on unverified data.
-        </div>
-      )}
 
       {/* Identity */}
       {v.identityNotes && (

@@ -3,10 +3,21 @@ const BACKEND_URL = window.psgApp?.isElectron
   ? 'http://127.0.0.1:5001'
   : '/api';
 
+// Per-session auth token injected by the Electron preload via contextBridge.
+// Included in every Flask API request so the backend can reject calls from
+// other processes on the same machine that don't possess the token.
+function localAuthHeaders() {
+  const token = window.psgApp?.localToken;
+  return token ? { 'X-PSG-Local-Token': token } : {};
+}
+
 export async function backendFetch(path, body = {}, signal) {
   const r = await fetch(`${BACKEND_URL}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...localAuthHeaders(),
+    },
     body: JSON.stringify(body),
     signal,
   });

@@ -16,5 +16,5 @@ export default function MarkdownRenderer({ content, className = '' }) {
     }
   }, [content]);
 
-  return <div ref={ref} className={`prose prose-sm max-w-none ${className}`} />;
+  return <div ref={ref} className={`psg-report-body ${className}`} />;
 }

@@ -73,6 +73,17 @@ function reducer(state, action) {
         }
       };
     case 'RESET_PIPELINE': return { ...state, pipeline: {} };
+    case 'CLEAR_ALL_DATA':
+      localStorage.removeItem('psg_talent_search_history');
+      return {
+        ...state,
+        leaders: [],
+        currentLeader: null,
+        pipeline: {},
+        specText: '',
+        specAnalysis: null,
+        calibrationCtx: '',
+      };
     case 'SET_SPEC': return { ...state, specText: action.payload };
     case 'SET_SPEC_ANALYSIS': return { ...state, specAnalysis: action.payload };
     case 'SET_CALIBRATION': return { ...state, calibrationCtx: action.payload };

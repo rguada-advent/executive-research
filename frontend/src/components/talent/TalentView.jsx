@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { useApp } from '../../context/AppContext';
 import DiscoveryInput from './DiscoveryInput';
 import ImportInput from './ImportInput';
+import LinkedInInput from './LinkedInInput';
 import SpecUpload from './SpecUpload';
 import TalentDashboard from './TalentDashboard';
 import TalentBriefView from './TalentBriefView';
@@ -334,6 +335,7 @@ export default function TalentView() {
       {view === VIEWS.INPUT && (
         <div className="max-w-4xl mx-auto">
           <DiscoveryInput onDiscovered={handleDiscovered} />
+          <LinkedInInput onAdded={handleDiscovered} />
           <ImportInput onImported={handleDiscovered} />
           <SpecUpload />
           <SearchHistory onSelectLeader={handleLoadFromHistory} />

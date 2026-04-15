@@ -56,34 +56,29 @@ Return ONLY valid JSON:
     sourcesAppendix: [],
   };
 
-  let lastError;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      const result = await callClaude(
-        [{ role: 'user', content: prompt }],
-        { apiKey, model, webSearch: true, maxTokens: 16384, signal, searchUses: 10 }
-      );
+  try {
+    const result = await callClaude(
+      [{ role: 'user', content: prompt }],
+      { apiKey, model, webSearch: true, maxTokens: 16384, signal, searchUses: 10 }
+    );
 
-      // Try code-fenced JSON block first, then fall back to bare brace match
-      const fenced = result.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
-      const bare = result.match(/\{[\s\S]*\}/);
-      const match = fenced ? fenced[1] : (bare ? bare[0] : null);
-      if (!match) {
-        lastError = new Error('Verification returned no JSON output');
-        continue;
-      }
-      try {
-        return JSON.parse(match);
-      } catch (parseErr) {
-        lastError = parseErr;
-        // Retry on parse failure
-      }
-    } catch (e) {
-      if (e.name === 'AbortError') throw e;
-      lastError = e;
+    // Try code-fenced JSON block first, then fall back to bare brace match
+    const fenced = result.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+    const bare = result.match(/\{[\s\S]*\}/);
+    const match = fenced ? fenced[1] : (bare ? bare[0] : null);
+    if (!match) {
+      console.warn('Verification agent returned no JSON output');
+      return emptyResult;
     }
+    try {
+      return JSON.parse(match);
+    } catch (parseErr) {
+      console.warn('Verification agent JSON parse failed:', parseErr);
+      return emptyResult;
+    }
+  } catch (e) {
+    if (e.name === 'AbortError') throw e;
+    console.warn('Verification agent call failed:', e);
+    return emptyResult;
   }
-
-  console.warn('Verification agent failed after 3 attempts:', lastError);
-  return emptyResult;
 }
