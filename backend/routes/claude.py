@@ -81,7 +81,7 @@ def messages():
     """Proxy a Claude API call. Supports both streaming and non-streaming modes."""
     api_key = get_api_key()
     if not api_key:
-        return jsonify({"error": "API key not configured. Enter your Anthropic API key in the app header."}), 401
+        return jsonify({"error": "API key not configured. Click the Settings button in the top-right corner and paste your Anthropic API key (starts with sk-ant-)."}), 401
 
     body = request.get_json(silent=True) or {}
 

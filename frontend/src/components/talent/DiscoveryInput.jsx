@@ -27,9 +27,9 @@ export default function DiscoveryInput({ onDiscovered }) {
   async function handleDiscover() {
     const active = rows.filter(r => r.company.trim());
     if (!active.length) { toast('Please enter at least one company name.'); return; }
-    if (!state.apiKey) { toast('Please configure your API key in the header.'); return; }
+    if (!state.apiKey) { toast('Please configure your API key in settings.'); return; }
     setLoading(true);
-    setStatus(`Searching ${active.length > 1 ? active.length + ' companies' : active[0].company}...`);
+    setStatus(`Searching ${active.length > 1 ? active.length + ' companies' : active[0].company}…`);
     try {
       const opts = { apiKey: state.apiKey, model: state.model };
       const results = await Promise.all(
@@ -68,59 +68,65 @@ export default function DiscoveryInput({ onDiscovered }) {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-advent-blue/30 p-6 mb-4">
-      <h2 className="text-base font-bold text-advent-navy flex items-center gap-2 mb-1">
-        <span className="w-1 h-[18px] bg-advent-blue rounded" />
-        Talent Discovery
-      </h2>
-      <p className="text-sm text-advent-gray-500 mb-4">
-        Discover executives by company, function, and seniority level. Add up to {MAX_ROWS} searches to run in parallel.
-      </p>
+    <div className="psg-card p-8 mb-4 psg-fade-up">
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="w-1.5 h-1.5 bg-advent-blue rotate-45" aria-hidden />
+          <span className="text-[11px] font-semibold tracking-[0.15em] text-advent-gray-500 uppercase">Talent Sourcing</span>
+        </div>
+        <h2 className="text-2xl font-bold text-advent-navy tracking-tight">Discover Executives</h2>
+        <p className="text-sm text-advent-gray-500 mt-2 max-w-2xl leading-relaxed">
+          Source candidates by company, function, and seniority. Run up to {MAX_ROWS} searches in parallel —
+          results are deduplicated automatically.
+        </p>
+      </div>
 
-      <div className="space-y-3 mb-4">
+      <div className="space-y-4 mb-4">
         {rows.map((row, i) => (
-          <div key={i} className="relative">
+          <div key={i} className="relative rounded-xl border border-[var(--border-subtle)] bg-[var(--color-advent-gray-75)] p-4">
             {rows.length > 1 && (
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs font-semibold text-advent-gray-500 uppercase tracking-wide">Search {i + 1}</span>
+              <div className="flex items-center justify-between mb-3">
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-advent-gray-500">
+                  <span className="w-5 h-5 rounded-full bg-advent-navy text-white text-[10px] font-bold flex items-center justify-center">{i + 1}</span>
+                  Search
+                </span>
                 <button
                   onClick={() => removeRow(i)}
-                  className="text-xs text-advent-gray-400 hover:text-red-500 transition-colors"
-                  title="Remove this search"
+                  className="text-[11px] text-advent-gray-500 hover:text-red-600 transition-colors px-2 py-1 rounded hover:bg-red-50"
                 >
-                  × Remove
+                  Remove
                 </button>
               </div>
             )}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div>
-                <label className="block text-xs text-advent-gray-500 uppercase tracking-wide mb-1">Company Name</label>
+                <label className="psg-label">Company</label>
                 <input
                   type="text"
                   value={row.company}
                   onChange={e => updateRow(i, 'company', e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleDiscover()}
-                  placeholder="e.g. Pfizer, Johnson & Johnson"
-                  className="w-full border border-advent-gray-350 rounded px-3 py-2 text-sm"
+                  placeholder="Pfizer"
+                  className="psg-input"
                 />
               </div>
               <div>
-                <label className="block text-xs text-advent-gray-500 uppercase tracking-wide mb-1">Title / Role Keywords</label>
+                <label className="psg-label">Title Keywords</label>
                 <input
                   type="text"
                   value={row.titleFilter}
                   onChange={e => updateRow(i, 'titleFilter', e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleDiscover()}
-                  placeholder="e.g. Commercial Operations, R&D"
-                  className="w-full border border-advent-gray-350 rounded px-3 py-2 text-sm"
+                  placeholder="Commercial Operations"
+                  className="psg-input"
                 />
               </div>
               <div>
-                <label className="block text-xs text-advent-gray-500 uppercase tracking-wide mb-1">Function / Department</label>
+                <label className="psg-label">Function</label>
                 <select
                   value={row.func}
                   onChange={e => updateRow(i, 'func', e.target.value)}
-                  className="w-full border border-advent-gray-350 rounded px-3 py-2 text-sm bg-white"
+                  className="psg-input psg-select"
                 >
                   {FUNCTION_OPTIONS.map(opt => (
                     <option key={opt} value={opt === 'All Functions' ? '' : opt}>{opt}</option>
@@ -128,11 +134,11 @@ export default function DiscoveryInput({ onDiscovered }) {
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-advent-gray-500 uppercase tracking-wide mb-1">Seniority Level</label>
+                <label className="psg-label">Seniority</label>
                 <select
                   value={row.seniority}
                   onChange={e => updateRow(i, 'seniority', e.target.value)}
-                  className="w-full border border-advent-gray-350 rounded px-3 py-2 text-sm bg-white"
+                  className="psg-input psg-select"
                 >
                   {SENIORITY_OPTIONS.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -147,20 +153,24 @@ export default function DiscoveryInput({ onDiscovered }) {
       {rows.length < MAX_ROWS && (
         <button
           onClick={addRow}
-          className="text-sm text-advent-blue hover:underline mb-4 block"
+          className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-advent-blue hover:text-advent-navy transition-colors mb-5"
         >
-          + Add another company / role
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Add another search
         </button>
       )}
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 pt-5 border-t border-[var(--border-subtle)]">
         <button
           onClick={handleDiscover}
           disabled={loading}
-          className="bg-advent-blue text-white px-5 py-2 rounded text-sm font-semibold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          className="psg-btn psg-btn-primary"
         >
-          {loading && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-          Discover Talent
+          {loading && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+          {loading ? 'Searching…' : 'Discover Talent'}
+          {!loading && (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          )}
         </button>
         {status && <span className="text-sm text-advent-gray-500">{status}</span>}
       </div>

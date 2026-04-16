@@ -83,61 +83,73 @@ export default function SubjectInput({ onStart }) {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-advent-gray-200 p-6 mb-4">
-      <h2 className="text-base font-bold text-advent-navy flex items-center gap-2 mb-1">
-        <span className="w-1 h-[18px] bg-advent-navy rounded" />
-        Executive Research
-      </h2>
-      <p className="text-sm text-advent-gray-500 mb-4">
-        Add executives for forensic background investigation. Each subject will be researched across professional history, social media, legal databases, regulatory filings, and verified by an adversarial agent.
-      </p>
+    <div className="psg-card p-8 mb-4 psg-fade-up">
+      {/* Hero heading */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="w-1.5 h-1.5 bg-advent-gold rotate-45" aria-hidden />
+          <span className="text-[11px] font-semibold tracking-[0.15em] text-advent-gray-500 uppercase">Forensic Intelligence</span>
+        </div>
+        <h2 className="text-2xl font-bold text-advent-navy tracking-tight">Executive Research</h2>
+        <p className="text-sm text-advent-gray-500 mt-2 max-w-2xl leading-relaxed">
+          Add executives for deep background investigation. Each subject is researched across
+          professional history, social media, legal databases, and regulatory filings — then
+          verified by an adversarial agent for confidence scoring.
+        </p>
+      </div>
 
-      <div className="grid grid-cols-3 gap-3 mb-3">
+      {/* Input grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div>
-          <label className="block text-[11px] text-advent-gray-500 uppercase tracking-wide mb-1">Full Name</label>
+          <label className="psg-label">Full Name</label>
           <input
             value={name}
             onChange={e => setName(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="e.g. John Smith"
-            className="w-full border border-advent-gray-350 rounded px-3 py-2 text-sm"
+            className="psg-input"
           />
         </div>
         <div>
-          <label className="block text-[11px] text-advent-gray-500 uppercase tracking-wide mb-1">Title</label>
+          <label className="psg-label">Title</label>
           <input
             value={title}
             onChange={e => setTitle(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="e.g. SVP, Commercial Operations"
-            className="w-full border border-advent-gray-350 rounded px-3 py-2 text-sm"
+            placeholder="SVP, Commercial Operations"
+            className="psg-input"
           />
         </div>
         <div>
-          <label className="block text-[11px] text-advent-gray-500 uppercase tracking-wide mb-1">Company</label>
+          <label className="psg-label">Company</label>
           <input
             value={company}
             onChange={e => setCompany(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="e.g. Pfizer"
-            className="w-full border border-advent-gray-350 rounded px-3 py-2 text-sm"
+            placeholder="Pfizer"
+            className="psg-input"
           />
         </div>
       </div>
 
-      <div className="flex gap-2 mb-4">
-        <button
-          onClick={handleAdd}
-          className="bg-advent-navy text-white px-4 py-1.5 rounded text-sm font-semibold hover:opacity-90"
-        >
+      <div className="flex flex-wrap items-center gap-2.5 mb-5">
+        <button onClick={handleAdd} className="psg-btn psg-btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
           Add Subject
         </button>
         <button
           onClick={() => fileRef.current?.click()}
           disabled={importing}
-          className="bg-advent-gray-200 border border-advent-gray-350 text-advent-gray-700 px-4 py-1.5 rounded text-sm font-medium hover:bg-advent-gray-350 disabled:opacity-50"
+          className="psg-btn psg-btn-secondary"
         >
-          {importing ? 'Importing...' : 'Import from File'}
+          {importing ? (
+            <><span className="w-3 h-3 border-2 border-advent-navy/30 border-t-advent-navy rounded-full animate-spin" /> Importing…</>
+          ) : (
+            <>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Import from File
+            </>
+          )}
         </button>
         <input
           ref={fileRef}
@@ -149,34 +161,45 @@ export default function SubjectInput({ onStart }) {
       </div>
 
       {leaders.length > 0 && (
-        <div className="flex flex-col gap-2 mb-4">
-          {leaders.map((l, i) => (
-            <div key={i} className="flex items-center gap-3 px-3 py-2.5 bg-advent-gray-75 border border-advent-gray-200 rounded-lg">
-              <div className="flex-1 text-sm">
-                <strong className="text-advent-gray-700">{l.name}</strong>
-                <span className="text-advent-gray-500"> — {l.title}{l.company ? ' at ' + l.company : ''}</span>
+        <div className="mb-5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-semibold tracking-wider uppercase text-advent-gray-500">Subjects Queue</span>
+            <span className="text-[11px] text-advent-gray-500">{leaders.length} {leaders.length === 1 ? 'subject' : 'subjects'}</span>
+          </div>
+          <div className="flex flex-col gap-1.5 max-h-72 overflow-y-auto pr-1">
+            {leaders.map((l, i) => (
+              <div key={i} className="flex items-center gap-3 px-3.5 py-2.5 bg-advent-gray-75 border border-[var(--border-subtle)] rounded-lg hover:border-[var(--border-default)] transition-colors">
+                <span className="w-7 h-7 rounded-full bg-advent-navy text-white text-[11px] font-semibold flex items-center justify-center shrink-0">
+                  {l.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()}
+                </span>
+                <div className="flex-1 min-w-0 text-sm">
+                  <div className="font-semibold text-advent-navy truncate">{l.name}</div>
+                  <div className="text-[12px] text-advent-gray-500 truncate">{l.title}{l.company ? ` · ${l.company}` : ''}</div>
+                </div>
+                <button
+                  onClick={() => handleRemove(i)}
+                  className="text-advent-gray-350 hover:text-red-600 p-1.5 rounded hover:bg-red-50 transition-colors"
+                  aria-label={`Remove ${l.name}`}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
               </div>
-              <button
-                onClick={() => handleRemove(i)}
-                className="text-risk-high hover:text-risk-critical text-lg leading-none px-1"
-              >
-                &times;
-              </button>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
-      <div className="flex items-center gap-4 pt-4 border-t border-advent-gray-200">
+      <div className="flex items-center gap-4 pt-5 border-t border-[var(--border-subtle)]">
         <button
           onClick={onStart}
           disabled={leaders.length === 0}
-          className="bg-advent-navy text-white px-5 py-2 rounded text-sm font-semibold hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="psg-btn psg-btn-primary"
         >
           Start Investigation
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
         </button>
         <span className="text-sm text-advent-gray-500">
-          {leaders.length} subject{leaders.length !== 1 ? 's' : ''} added
+          {leaders.length === 0 ? 'Add at least one subject to begin' : `Ready to research ${leaders.length} ${leaders.length === 1 ? 'subject' : 'subjects'}`}
         </span>
       </div>
     </div>

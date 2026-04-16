@@ -1,30 +1,53 @@
 const SENIORITY_STYLES = {
-  'c-suite': 'bg-advent-navy/10 text-advent-navy',
-  'svp': 'bg-advent-cyan/20 text-advent-cyan',
-  'vp': 'bg-risk-none/20 text-risk-none',
-  'director': 'bg-risk-medium/20 text-risk-medium',
-  'other': 'bg-advent-gray-200 text-advent-gray-500',
+  'c-suite':  'bg-advent-navy/10 text-advent-navy border-advent-navy/20',
+  'svp':      'bg-sky-50 text-sky-700 border-sky-100',
+  'vp':       'bg-emerald-50 text-emerald-700 border-emerald-100',
+  'director': 'bg-amber-50 text-amber-700 border-amber-100',
+  'other':    'bg-advent-gray-100 text-advent-gray-700 border-[var(--border-subtle)]',
 };
 
 const RISK_STYLES = {
-  'none': 'bg-risk-none/20 text-risk-none',
-  'low': 'bg-risk-low/20 text-risk-low',
-  'medium': 'bg-risk-medium/20 text-risk-medium',
-  'high': 'bg-risk-high/20 text-risk-high',
-  'critical': 'bg-risk-critical text-white',
+  'none':     'bg-emerald-50 text-emerald-700 border-emerald-100',
+  'low':      'bg-sky-50 text-sky-700 border-sky-100',
+  'medium':   'bg-amber-50 text-amber-700 border-amber-100',
+  'high':     'bg-red-50 text-red-700 border-red-100',
+  'critical': 'bg-red-600 text-white border-red-700',
+};
+
+const DOT_STYLES = {
+  complete: 'bg-emerald-500',
+  active:   'bg-advent-blue psg-pulse',
+  failed:   'bg-red-500',
+  idle:     'bg-advent-gray-350',
 };
 
 export function SeniorityBadge({ seniority }) {
   const style = SENIORITY_STYLES[seniority] || SENIORITY_STYLES.other;
-  return <span className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold uppercase ${style}`}>{seniority}</span>;
+  return (
+    <span className={`psg-chip border ${style}`}>
+      {(seniority || 'other').replace(/-/g, ' ')}
+    </span>
+  );
 }
 
 export function RiskBadge({ risk }) {
   const style = RISK_STYLES[risk] || RISK_STYLES.none;
-  return <span className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${style}`}>{risk}</span>;
+  return (
+    <span className={`psg-chip border ${style}`}>
+      {risk}
+    </span>
+  );
 }
 
-export function StatusDot({ status }) {
-  const cls = status === 'complete' ? 'bg-risk-none' : status === 'active' ? 'bg-risk-medium animate-pulse' : 'bg-advent-gray-500';
+export function StatusDot({ status = 'idle', label }) {
+  const cls = DOT_STYLES[status] || DOT_STYLES.idle;
+  if (label) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-advent-gray-500">
+        <span className={`w-2 h-2 rounded-full ${cls}`} />
+        {label}
+      </span>
+    );
+  }
   return <span className={`w-2 h-2 rounded-full inline-block ${cls}`} />;
 }

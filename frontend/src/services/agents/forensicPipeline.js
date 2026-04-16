@@ -20,9 +20,15 @@ async function withRetry(fn, maxRetries = 2) {
     } catch (err) {
       if (err.name === 'AbortError') throw err;
       if (attempt === maxRetries) throw err;
-      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
-      if (err.message?.includes('rate') || err.message?.includes('429')) {
-        await new Promise(r => setTimeout(r, 5000 * (attempt + 1)));
+      // Exponential base backoff
+      await new Promise(r => setTimeout(r, 1500 * Math.pow(2, attempt)));
+      // Rate-limit specific extra wait: Anthropic's RPM window is 60s, so we
+      // need to wait long enough for it to actually reset. Previous 5s was
+      // inadequate and caused glassdoor/linkedin agents to exhaust retries
+      // during the 60s rate-limit window.
+      const msg = (err.message || '').toLowerCase();
+      if (msg.includes('rate') || msg.includes('429') || msg.includes('overloaded') || msg.includes('529')) {
+        await new Promise(r => setTimeout(r, 15000 + (attempt * 10000)));
       }
     }
   }
@@ -82,13 +88,16 @@ export async function runForensicPipeline(leader, {
     if (signal?.aborted) return;
 
     // Parallel agents: 2 (contact), 3 (social), 13 (glassdoor), 10 (legal), 11 (regulatory), 12 (linkedin via web search)
+    // Glassdoor and LinkedIn get maxRetries=2 because they're most prone to
+    // Anthropic rate-limit rejections (heavy web-search prompts) and the
+    // longer retry window gives them time to recover from a 60s RPM cap.
     const [cRes, sRes, gdRes, lRes, rRes, liRes] = await Promise.allSettled([
       withRetry(() => agentContactIntelligence(leader, { apiKey, model, signal }), 1),
       withRetry(() => agentSocialMedia(leader, { apiKey, model, signal }), 1),
-      withRetry(() => agentGlassdoor(leader, { apiKey, model, signal }), 1),
+      withRetry(() => agentGlassdoor(leader, { apiKey, model, signal }), 2),
       withRetry(() => agentLegalResearch(leader, { apiKey, model, signal, clToken }), 1),
       withRetry(() => agentRegulatoryCompliance(leader, { apiKey, model, signal }), 1),
-      withRetry(() => agentLinkedInResearch(leader, { apiKey, model, signal }), 1),
+      withRetry(() => agentLinkedInResearch(leader, { apiKey, model, signal }), 2),
     ]);
 
     const contact = cRes.status === 'fulfilled' ? cRes.value : null;
@@ -137,11 +146,35 @@ export async function runForensicPipeline(leader, {
     onSearch?.(true, 'Writing report');
 
     const briefPipe = { ...pipeState };
-    const brief = await agentBriefSynthesizer(leader, briefPipe, {
+    let brief = await agentBriefSynthesizer(leader, briefPipe, {
       apiKey, model, signal, mode: 'forensic',
       onText: (_, acc) => update({ brief: acc }),
     });
     onSearch?.(false);
+
+    // Defensive: if Claude returned an empty or nearly-empty stream,
+    // don't silently claim success. Retry once, then either surface the
+    // empty state to the UI or mark the stage failed with a helpful message.
+    if (!brief || brief.trim().length < 200) {
+      console.warn('[PSG] Brief synthesizer returned empty/short content, retrying once');
+      try {
+        brief = await agentBriefSynthesizer(leader, briefPipe, {
+          apiKey, model, signal, mode: 'forensic',
+          onText: (_, acc) => update({ brief: acc }),
+        });
+      } catch (retryErr) {
+        if (retryErr.name === 'AbortError') throw retryErr;
+        markFailed(5, 'Brief generation failed: ' + (retryErr.message || 'empty response'));
+        update({ state: 'failed' });
+        return;
+      }
+      if (!brief || brief.trim().length < 200) {
+        markFailed(5, 'Brief generation returned empty content. This usually indicates an API rate limit or a content-filter response — wait a minute and try again.');
+        update({ state: 'failed' });
+        return;
+      }
+    }
+
     update({ brief, state: 'complete' });
     markCompleted(5);
   } catch (err) {

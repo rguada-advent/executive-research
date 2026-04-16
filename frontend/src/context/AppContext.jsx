@@ -7,6 +7,15 @@ const AppContext = createContext(null);
 // '(configured)' is a UI sentinel meaning "backend has a key, but we don't expose it here".
 const BACKEND = window.psgApp?.isElectron ? 'http://127.0.0.1:5001' : '/api';
 
+// Per-session auth token injected by the Electron preload. REQUIRED on every
+// /claude/* and /proxy/* request since v1.5.3 added backend enforcement.
+// Without this, config saves and status checks silently 401 → user sees
+// "API key not configured" errors even after they enter their key.
+function localAuthHeaders() {
+  const token = window.psgApp?.localToken;
+  return token ? { 'X-PSG-Local-Token': token } : {};
+}
+
 const initialState = {
   mode: MODES.FORENSIC,
   apiKey: '',         // '' = not set, '(configured)' = saved on backend, real key = being entered
@@ -103,35 +112,73 @@ export function AppProvider({ children }) {
     setTimeout(() => dispatch({ type: 'REMOVE_TOAST', payload: id }), 3000);
   }, []);
 
-  // On mount: check if backend already has a key configured from a previous session
+  // On mount: check if backend already has a key configured from a previous session.
+  // Retries a few times because the Flask backend may still be starting up
+  // when the renderer first loads.
   useEffect(() => {
-    fetch(`${BACKEND}/claude/status`)
-      .then(r => r.json())
-      .then(data => {
-        if (data.configured) {
-          dispatch({ type: 'SET_API_KEY', payload: '(configured)' });
+    let cancelled = false;
+    let attempts = 0;
+
+    async function check() {
+      while (!cancelled && attempts < 8) {
+        attempts++;
+        try {
+          const r = await fetch(`${BACKEND}/claude/status`, {
+            headers: { ...localAuthHeaders() },
+          });
+          if (r.ok) {
+            const data = await r.json();
+            if (!cancelled && data.configured) {
+              dispatch({ type: 'SET_API_KEY', payload: '(configured)' });
+            }
+            return;
+          }
+        } catch (_) {
+          // Backend not yet ready — retry after a delay.
         }
-      })
-      .catch(() => {}); // backend not yet ready — silently ignore, user can enter key manually
+        await new Promise(res => setTimeout(res, 500 + attempts * 300));
+      }
+    }
+    check();
+    return () => { cancelled = true; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // When user enters a new real key, persist it to the backend
+  // When user enters a new real key, persist it to the backend.
+  // Debounced so we don't POST on every keystroke while the user is typing.
   useEffect(() => {
     const key = state.apiKey;
     if (!key || key === '(configured)') return;
-    fetch(`${BACKEND}/claude/config`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ apiKey: key }),
-    })
-      .then(r => r.json())
-      .then(data => {
-        if (data.status === 'ok') {
-          // Replace plaintext key with sentinel so it's not exposed in state
+    // Only save if the key looks plausibly valid — avoids spamming the
+    // backend with partial keystrokes and the resulting 400 errors.
+    if (!key.startsWith('sk-ant-') || key.length < 40) return;
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        const r = await fetch(`${BACKEND}/claude/config`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...localAuthHeaders() },
+          body: JSON.stringify({ apiKey: key }),
+        });
+        const data = await r.json().catch(() => ({}));
+        if (r.ok && data.status === 'ok') {
           dispatch({ type: 'SET_API_KEY', payload: '(configured)' });
+          const saved = Date.now() + Math.random();
+          dispatch({ type: 'ADD_TOAST', payload: { id: saved, message: 'API key saved.' } });
+          setTimeout(() => dispatch({ type: 'REMOVE_TOAST', payload: saved }), 2500);
+        } else {
+          const msg = data.error || `Failed to save key (HTTP ${r.status}). The backend may not have started yet — try again in a moment.`;
+          const id = Date.now() + Math.random();
+          dispatch({ type: 'ADD_TOAST', payload: { id, message: msg } });
+          setTimeout(() => dispatch({ type: 'REMOVE_TOAST', payload: id }), 5000);
         }
-      })
-      .catch(() => {}); // persist failure is non-fatal; key is still in-memory for this session
+      } catch (err) {
+        const id = Date.now() + Math.random();
+        dispatch({ type: 'ADD_TOAST', payload: { id, message: 'Could not reach local backend to save API key. Restart the app and try again.' } });
+        setTimeout(() => dispatch({ type: 'REMOVE_TOAST', payload: id }), 5000);
+      }
+    }, 400);
+
+    return () => clearTimeout(timeoutId);
   }, [state.apiKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
