@@ -1,6 +1,6 @@
 {
   "name": "psg-executive-intelligence",
-  "version": "1.5.7",
+  "version": "2.0.0",
   "description": "PSG Human Capital Executive Intelligence - Talent Discovery & Forensic Background Analysis",
   "main": "main.js",
   "author": "PSG Human Capital",
@@ -21,12 +21,14 @@
   "build": {
     "appId": "com.psg.executive-intelligence",
     "productName": "PSG Executive Intelligence",
-    "copyright": "Copyright © 2026 PSG Human Capital",
+    "copyright": "Copyright \u00c2\u00a9 2026 PSG Human Capital",
     "win": {
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "assets/icon.ico"
@@ -51,7 +53,13 @@
       {
         "from": "../backend",
         "to": "backend",
-        "filter": ["**/*", "!__pycache__/**", "!*.pyc", "!tests/**", "!.pytest_cache/**"]
+        "filter": [
+          "**/*",
+          "!__pycache__/**",
+          "!*.pyc",
+          "!tests/**",
+          "!.pytest_cache/**"
+        ]
       },
       {
         "from": "../frontend/dist",

@@ -18,7 +18,10 @@ function localAuthHeaders() {
 
 const initialState = {
   mode: MODES.FORENSIC,
-  apiKey: '',         // '' = not set, '(configured)' = saved on backend, real key = being entered
+  // API keys — '' = not set, '(configured)' = saved on backend, real key = being entered
+  apiKey: '',         // Anthropic
+  openaiApiKey: '',   // OpenAI
+  geminiApiKey: '',   // Google Gemini
   model: 'claude-sonnet-4-6',
   clToken: sessionStorage.getItem('psg_cl_token') || '',
   linkedin: {},
@@ -39,6 +42,10 @@ function reducer(state, action) {
     case 'SET_API_KEY':
       // No sessionStorage — key is persisted server-side via useEffect below
       return { ...state, apiKey: action.payload };
+    case 'SET_OPENAI_KEY':
+      return { ...state, openaiApiKey: action.payload };
+    case 'SET_GEMINI_KEY':
+      return { ...state, geminiApiKey: action.payload };
     case 'SET_MODEL': return { ...state, model: action.payload };
     case 'SET_CL_TOKEN':
       sessionStorage.setItem('psg_cl_token', action.payload);
@@ -113,9 +120,8 @@ export function AppProvider({ children }) {
     setTimeout(() => dispatch({ type: 'REMOVE_TOAST', payload: id }), 3000);
   }, []);
 
-  // On mount: check if backend already has a key configured from a previous session.
-  // Retries a few times because the Flask backend may still be starting up
-  // when the renderer first loads.
+  // On mount: check which providers the backend already has keys for.
+  // Retries because the Flask backend may still be starting up when the renderer loads.
   useEffect(() => {
     let cancelled = false;
     let attempts = 0;
@@ -129,8 +135,14 @@ export function AppProvider({ children }) {
           });
           if (r.ok) {
             const data = await r.json();
-            if (!cancelled && data.configured) {
-              dispatch({ type: 'SET_API_KEY', payload: '(configured)' });
+            if (!cancelled) {
+              const providers = data.providers || {};
+              if (providers.anthropic || data.configured)
+                dispatch({ type: 'SET_API_KEY',      payload: '(configured)' });
+              if (providers.openai)
+                dispatch({ type: 'SET_OPENAI_KEY',   payload: '(configured)' });
+              if (providers.gemini)
+                dispatch({ type: 'SET_GEMINI_KEY',   payload: '(configured)' });
             }
             return;
           }
@@ -181,6 +193,72 @@ export function AppProvider({ children }) {
 
     return () => clearTimeout(timeoutId);
   }, [state.apiKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Persist OpenAI API key when it changes
+  useEffect(() => {
+    const key = state.openaiApiKey;
+    if (!key || key === '(configured)') return;
+    if (!key.startsWith('sk-') || key.length < 20) return;
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        const r = await fetch(`${BACKEND}/claude/config`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...localAuthHeaders() },
+          body: JSON.stringify({ openaiApiKey: key }),
+        });
+        const data = await r.json().catch(() => ({}));
+        if (r.ok && data.status === 'ok') {
+          dispatch({ type: 'SET_OPENAI_KEY', payload: '(configured)' });
+          const id = Date.now() + Math.random();
+          dispatch({ type: 'ADD_TOAST', payload: { id, message: 'OpenAI API key saved.' } });
+          setTimeout(() => dispatch({ type: 'REMOVE_TOAST', payload: id }), 2500);
+        } else {
+          const id = Date.now() + Math.random();
+          dispatch({ type: 'ADD_TOAST', payload: { id, message: data.error || `Failed to save OpenAI key (HTTP ${r.status}).` } });
+          setTimeout(() => dispatch({ type: 'REMOVE_TOAST', payload: id }), 5000);
+        }
+      } catch (_) {
+        const id = Date.now() + Math.random();
+        dispatch({ type: 'ADD_TOAST', payload: { id, message: 'Could not reach local backend to save OpenAI key.' } });
+        setTimeout(() => dispatch({ type: 'REMOVE_TOAST', payload: id }), 5000);
+      }
+    }, 400);
+    return () => clearTimeout(timeoutId);
+  }, [state.openaiApiKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Persist Gemini API key when it changes
+  useEffect(() => {
+    const key = state.geminiApiKey;
+    if (!key || key === '(configured)') return;
+    if (!key.startsWith('AIza') || key.length < 20) return;
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        const r = await fetch(`${BACKEND}/claude/config`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...localAuthHeaders() },
+          body: JSON.stringify({ geminiApiKey: key }),
+        });
+        const data = await r.json().catch(() => ({}));
+        if (r.ok && data.status === 'ok') {
+          dispatch({ type: 'SET_GEMINI_KEY', payload: '(configured)' });
+          const id = Date.now() + Math.random();
+          dispatch({ type: 'ADD_TOAST', payload: { id, message: 'Gemini API key saved.' } });
+          setTimeout(() => dispatch({ type: 'REMOVE_TOAST', payload: id }), 2500);
+        } else {
+          const id = Date.now() + Math.random();
+          dispatch({ type: 'ADD_TOAST', payload: { id, message: data.error || `Failed to save Gemini key (HTTP ${r.status}).` } });
+          setTimeout(() => dispatch({ type: 'REMOVE_TOAST', payload: id }), 5000);
+        }
+      } catch (_) {
+        const id = Date.now() + Math.random();
+        dispatch({ type: 'ADD_TOAST', payload: { id, message: 'Could not reach local backend to save Gemini key.' } });
+        setTimeout(() => dispatch({ type: 'REMOVE_TOAST', payload: id }), 5000);
+      }
+    }, 400);
+    return () => clearTimeout(timeoutId);
+  }, [state.geminiApiKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <AppContext.Provider value={{ state, dispatch, toast }}>
