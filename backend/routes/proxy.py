@@ -5,7 +5,6 @@ from urllib.parse import urlparse
 proxy_bp = Blueprint('proxy', __name__)
 
 ALLOWED_HOSTS = [
-    "www.linkedin.com",
     "www.courtlistener.com",
     "www.glassdoor.com",
     "www.glassdoor.co.uk",
@@ -24,8 +23,6 @@ ALLOWED_REQUEST_HEADERS = {
     "csrf-token",
     "content-type",
     "accept",
-    "x-li-track",
-    "x-restli-protocol-version",
 }
 
 # Maximum bytes read from the proxied response body (5 MB).

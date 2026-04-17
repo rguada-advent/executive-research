@@ -4,7 +4,7 @@ import { MODES } from '../../utils/constants';
 const MODE_META = {
   [MODES.TALENT]: {
     title: 'Talent Discovery',
-    tagline: 'Source executives by company, function & seniority',
+    tagline: 'Build management pipelines and run Spec Mirror DD analysis',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -16,7 +16,7 @@ const MODE_META = {
   },
   [MODES.FORENSIC]: {
     title: 'Forensic Intelligence',
-    tagline: 'Deep background: legal, regulatory, social & verification',
+    tagline: 'Deep management intelligence: legal, regulatory, social & verification',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <circle cx="11" cy="11" r="8" />

@@ -2,22 +2,10 @@ import { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { SeniorityBadge, StatusDot } from '../shared/Badge';
 
-function ScoreBadge({ score }) {
-  if (score == null) return <span className="text-xs text-advent-gray-400">—</span>;
-  const cls =
-    score >= 4 ? 'bg-green-100 text-green-700' :
-    score >= 3 ? 'bg-amber-100 text-amber-700' :
-                 'bg-red-100 text-red-700';
-  return (
-    <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${cls}`}>
-      {score}
-    </span>
-  );
-}
 
 function MiniPipeline({ pipeEntry }) {
   if (!pipeEntry) return null;
-  const dots = ['professional', 'contact', 'brief', 'scoring', 'questions'];
+  const dots = ['professional', 'contact', 'brief', 'observations', 'questions'];
   return (
     <span className="inline-flex gap-0.5 items-center">
       {dots.map(key => {
@@ -41,7 +29,7 @@ export default function CandidateTable({ onViewBrief, onResearch, seniorityFilte
   if (filtered.length === 0) {
     return (
       <div className="text-center py-16 text-advent-gray-400">
-        <p className="text-lg mb-1">No candidates yet</p>
+        <p className="text-lg mb-1">No executives yet</p>
         <p className="text-sm">Use discovery or import to add executives.</p>
       </div>
     );
@@ -56,9 +44,8 @@ export default function CandidateTable({ onViewBrief, onResearch, seniorityFilte
     return { status: 'active', label: pipe.state || 'In progress' };
   }
 
-  function getScore(leader) {
-    const pipe = pipeline[leader.name];
-    return pipe?.scoring?.overallScore ?? null;
+  function hasObservations(leader) {
+    return pipeline[leader.name]?.observations != null;
   }
 
   return (
@@ -72,7 +59,7 @@ export default function CandidateTable({ onViewBrief, onResearch, seniorityFilte
             <th className="text-left px-3 py-2.5 text-[11px] font-semibold text-advent-gray-500 uppercase tracking-wide border-b-2 border-advent-gray-200">Source</th>
             <th className="text-left px-3 py-2.5 text-[11px] font-semibold text-advent-gray-500 uppercase tracking-wide border-b-2 border-advent-gray-200">Status</th>
             {specAnalysis && (
-              <th className="text-left px-3 py-2.5 text-[11px] font-semibold text-advent-gray-500 uppercase tracking-wide border-b-2 border-advent-gray-200">Fit</th>
+              <th className="text-left px-3 py-2.5 text-[11px] font-semibold text-advent-gray-500 uppercase tracking-wide border-b-2 border-advent-gray-200">Mirror</th>
             )}
             <th className="text-left px-3 py-2.5 text-[11px] font-semibold text-advent-gray-500 uppercase tracking-wide border-b-2 border-advent-gray-200">Actions</th>
           </tr>
@@ -81,7 +68,6 @@ export default function CandidateTable({ onViewBrief, onResearch, seniorityFilte
           {filtered.map((leader, idx) => {
             const pipe = pipeline[leader.name];
             const { status, label } = getStatus(leader);
-            const score = getScore(leader);
             const hasBrief = pipe?.brief != null;
 
             return (
@@ -112,7 +98,10 @@ export default function CandidateTable({ onViewBrief, onResearch, seniorityFilte
                 </td>
                 {specAnalysis && (
                   <td className="px-3 py-2.5">
-                    <ScoreBadge score={score} />
+                    {hasObservations(leader)
+                      ? <span className="text-xs font-semibold text-advent-blue">✓ Ready</span>
+                      : <span className="text-xs text-advent-gray-400">—</span>
+                    }
                   </td>
                 )}
                 <td className="px-3 py-2.5">
@@ -133,12 +122,12 @@ export default function CandidateTable({ onViewBrief, onResearch, seniorityFilte
                         View
                       </button>
                     )}
-                    {specAnalysis && hasBrief && score == null && (
+                    {specAnalysis && hasBrief && !hasObservations(leader) && (
                       <button
-                        onClick={() => onViewBrief && onViewBrief(leader, 'scorecard')}
-                        className="bg-risk-medium text-white px-2.5 py-1 rounded text-xs font-semibold hover:opacity-90"
+                        onClick={() => onViewBrief && onViewBrief(leader, 'mirror')}
+                        className="bg-advent-blue text-white px-2.5 py-1 rounded text-xs font-semibold hover:opacity-90"
                       >
-                        Score
+                        Mirror
                       </button>
                     )}
                     {specAnalysis && hasBrief && (
@@ -146,7 +135,7 @@ export default function CandidateTable({ onViewBrief, onResearch, seniorityFilte
                         onClick={() => onViewBrief && onViewBrief(leader, 'questions')}
                         className="bg-risk-none text-white px-2.5 py-1 rounded text-xs font-semibold hover:opacity-90"
                       >
-                        Questions
+                        Guide
                       </button>
                     )}
                     <button

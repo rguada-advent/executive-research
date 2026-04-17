@@ -103,6 +103,12 @@ def messages():
     if "anthropic-beta" in request.headers:
         upstream_headers["anthropic-beta"] = request.headers["anthropic-beta"]
 
+    # Log DD certification context when present — creates audit trail for compliance records.
+    dd_context = request.headers.get("X-PSG-DD-Context", "")
+    if dd_context:
+        import logging
+        logging.info("[DD] Claude call with DD context: %s", dd_context[:200])
+
     if body.get("stream"):
         def generate():
             try:

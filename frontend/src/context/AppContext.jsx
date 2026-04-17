@@ -75,7 +75,8 @@ function reducer(state, action) {
             professional: null, contact: null, social: null,
             glassdoor: null, linkedin: null, legal: null,
             regulatory: null, verification: null, brief: null,
-            scoring: null, questions: null,
+            observations: null, questions: null,
+            ddCertified: null,
             completedAgents: [], failedAgents: [],
             overallConfidence: null, overallRisk: 'none', errors: {},
           }

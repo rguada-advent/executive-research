@@ -33,8 +33,8 @@ Return ONLY valid JSON:
       if (!match) throw new Error('Could not parse spec analysis.');
       const analysis = JSON.parse(match[0]);
       dispatch({ type: 'SET_SPEC_ANALYSIS', payload: analysis });
-      setStatus('Spec analyzed successfully.');
-      toast('Recruiting spec analyzed. Fit scoring enabled.');
+      setStatus('Criteria analyzed.');
+      toast('Management criteria loaded. Spec Mirror enabled.');
     } catch (err) {
       setStatus('Error: ' + err.message);
       toast('Spec analysis failed: ' + err.message);
@@ -52,7 +52,7 @@ Return ONLY valid JSON:
         onClick={() => setOpen(!open)}
       >
         <span className="w-1 h-[18px] bg-risk-medium rounded" />
-        Recruiting Specification (Optional)
+        Management Assessment Criteria (Optional)
         {analysis ? (
           <span className="ml-2 inline-flex items-center gap-1.5 px-3 py-0.5 bg-risk-none/10 text-risk-none rounded-full text-xs font-semibold">
             ✓ Spec Loaded
@@ -68,15 +68,15 @@ Return ONLY valid JSON:
       {open && (
         <div className="mt-4 space-y-3">
           <p className="text-sm text-advent-gray-500">
-            Paste the job description to enable AI-powered fit scoring and tailored screening questions.
+            Define management criteria to enable Spec Mirror — structured DD intelligence aligned to your investment thesis and role requirements.
           </p>
 
           <div>
-            <label className="block text-xs text-advent-gray-500 uppercase tracking-wide mb-1">Recruiting Specification</label>
+            <label className="block text-xs text-advent-gray-500 uppercase tracking-wide mb-1">Management Criteria</label>
             <textarea
               value={specText}
               onChange={e => setSpecText(e.target.value)}
-              placeholder="Paste the full job description, required qualifications, responsibilities..."
+              placeholder="Paste management criteria, position requirements, or investment thesis leadership expectations..."
               className="w-full border border-advent-gray-350 rounded px-3 py-2 text-sm resize-y"
               style={{ minHeight: '120px' }}
             />
@@ -103,7 +103,7 @@ Return ONLY valid JSON:
               className="bg-risk-medium text-white px-4 py-1.5 rounded text-sm font-semibold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {loading && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-              Analyze Spec
+              Analyze Criteria
             </button>
             {status && <span className="text-sm text-advent-gray-500">{status}</span>}
           </div>

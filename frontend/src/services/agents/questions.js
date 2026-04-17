@@ -2,9 +2,8 @@ import { callClaude, streamResponse } from '../claudeApi';
 
 export async function agentQuestions(leader, pipe, { apiKey, model, signal, onText, specText }) {
   const company = leader.company ? ' at ' + leader.company : '';
-  const scoring = pipe.scoring;
 
-  const prompt = `Senior executive recruiter preparing screening call with ${leader.name}, ${leader.title}${company}. Questions must be SURGICAL.\n\n=== PROFILE ===\n${(pipe.brief || '').slice(0, 15000)}\n\n=== SCORING ===\n${scoring ? JSON.stringify({ overall: scoring.overall, label: scoring.label, gaps: scoring.gaps, strengths: scoring.strengths }, null, 2) : 'No scoring'}\n\n=== SPEC ===\n${(specText || '').slice(0, 10000)}\n\nGenerate markdown questions with green/red flag indicators:\n\n# Screening Questions: ${leader.name}\n\n## Spec-Critical Questions (5-7)\n## Leadership & Culture (3-4)\n## Behavioral / Situational (3-4)\n## Motivation & Logistics (3-4)\n\nAfter each question add:\n- *Probing: [what]*\n- *Green flag: [good answer]*\n- *Red flag: [concern]*`;
+  const prompt = `Preparing a management due diligence discussion guide for ${leader.name}, ${leader.title}${company}. Questions must be specific and grounded in the public record.\n\n=== PROFILE ===\n${(pipe.brief || '').slice(0, 15000)}\n\n=== MANAGEMENT CRITERIA ===\n${(specText || '').slice(0, 10000)}\n\nGenerate markdown questions organized by theme:\n\n# Management Discussion Guide: ${leader.name}\n\n## Criteria-Specific Questions (5-7)\n## Leadership & Operating Experience (3-4)\n## Behavioral / Situational (3-4)\n## Strategic Orientation & Logistics (3-4)\n\nAfter each question add:\n- *Probing: [follow-up if answer is vague]*\n- *Depth indicator: [what a thorough answer includes]*`;
 
   const r = await callClaude(
     [{ role: 'user', content: prompt }],

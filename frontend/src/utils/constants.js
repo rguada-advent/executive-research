@@ -34,11 +34,11 @@ export const FORENSIC_PIPELINE_STAGES = [
 ];
 
 export const TALENT_PIPELINE_STAGES = [
-  { id: 'research', agent: 1, label: 'Research', required: true },
-  { id: 'contact', agent: 2, label: 'Contact', required: false },
-  { id: 'lookalikes', agent: 14, label: 'Lookalikes', required: false },
-  { id: 'scoring', agent: 6, label: 'Score', required: false },
-  { id: 'questions', agent: 8, label: 'Questions', required: false },
+  { id: 'research',      agent: 1,  label: 'Research',   required: true },
+  { id: 'contact',       agent: 2,  label: 'Contact',    required: false },
+  { id: 'lookalikes',    agent: 14, label: 'Lookalikes', required: false },
+  { id: 'observations',  agent: 6,  label: 'Observe',    required: false },
+  { id: 'questions',     agent: 8,  label: 'Guide',      required: false },
 ];
 
 export const RISK_COLORS = {

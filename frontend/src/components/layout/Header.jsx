@@ -117,7 +117,7 @@ function SettingsDrawer({ onClose }) {
             Clear All Research Data
           </button>
           <p className="text-[10px] text-advent-gray-500 text-center mt-2 leading-relaxed">
-            All research is stored locally. Candidate names and public info are sent to Anthropic Claude for processing. Human review required before any employment decision.
+            All research is stored locally on this device. Executive names and public record information are sent to Anthropic Claude for processing. For investment due diligence use only — not for employment screening purposes.
           </p>
         </div>
       </div>

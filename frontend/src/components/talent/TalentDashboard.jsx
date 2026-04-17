@@ -16,7 +16,7 @@ export default function TalentDashboard({ onViewBrief, onResearchOne, onResearch
     <div className="bg-white rounded-xl border border-advent-gray-200 p-6">
       <h2 className="text-base font-bold text-advent-navy flex items-center gap-2 mb-4">
         <span className="w-1 h-[18px] bg-advent-blue rounded" />
-        Talent Database
+        Management Pipeline
       </h2>
 
       <div className="flex flex-wrap items-center gap-3 mb-4">
@@ -51,12 +51,12 @@ export default function TalentDashboard({ onViewBrief, onResearchOne, onResearch
           onClick={onBackToInput}
           className="bg-white border border-advent-gray-350 text-advent-gray-700 px-3 py-1.5 rounded text-sm font-semibold hover:bg-advent-gray-100"
         >
-          ← Add More Candidates
+          ← Add Executives
         </button>
 
         {specAnalysis && (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-risk-none/10 text-risk-none rounded-full text-xs font-semibold">
-            ✓ Spec Loaded — Fit Scoring Enabled
+            ✓ Criteria Loaded — Spec Mirror Enabled
           </span>
         )}
 

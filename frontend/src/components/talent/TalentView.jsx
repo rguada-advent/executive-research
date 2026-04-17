@@ -11,7 +11,7 @@ import SearchHistory, { addToHistory, checkHistory } from './SearchHistory';
 import { agentTalentResearch } from '../../services/agents/talentResearch';
 import { agentContactIntelligence } from '../../services/agents/contactIntelligence';
 import { agentLookalikes } from '../../services/agents/lookalikes';
-import { agentScoring } from '../../services/agents/scoring';
+import { agentSpecObserver } from '../../services/agents/specObserver';
 import { agentQuestions } from '../../services/agents/questions';
 
 const VIEWS = { INPUT: 'input', DB: 'db', BRIEF: 'brief' };
@@ -135,10 +135,7 @@ export default function TalentView() {
       // Save to search history
       addToHistory(leader, research);
 
-      // Auto-score if spec loaded
-      if (state.specText && state.specAnalysis) {
-        await runScoreForLeader(leader, ctrl);
-      }
+      // Observer runs manually from the Spec Mirror tab after DD certification
 
       toast(`Research complete for ${leader.name}.`);
     } catch (err) {
@@ -158,42 +155,36 @@ export default function TalentView() {
       setSearchLabel('');
       abortRef.current = null;
     }
-  }, [state.apiKey, state.model, state.specText, state.specAnalysis, dispatch, toast]);
+  }, [state.apiKey, state.model, state.specAnalysis, dispatch, toast]);
 
-  // Score a leader
-  async function runScoreForLeader(leader, ctrlOverride) {
+  // Extract DD observations for a leader (replaces runScoreForLeader)
+  async function runObserverForLeader(leader, ctrlOverride) {
     const pipe = state.pipeline[leader.name];
     if (!pipe?.brief) { toast('Please run research first.'); return; }
-    if (!state.specText) { toast('Please load a recruiting specification first.'); return; }
+    if (!state.specAnalysis) { toast('Please load management criteria first.'); return; }
 
     const ctrl = ctrlOverride || new AbortController();
     if (!ctrlOverride) abortRef.current = ctrl;
     dispatch({ type: 'SET_RESEARCHING', payload: true });
-    dispatch({ type: 'UPDATE_PIPELINE', payload: { name: leader.name, data: { state: 'scoring' } } });
-    setSearchLabel('Scoring candidate fit');
+    dispatch({ type: 'UPDATE_PIPELINE', payload: { name: leader.name, data: { state: 'observations' } } });
+    setSearchLabel('Extracting public record observations');
 
     try {
-      const scoringResult = await agentScoring(leader, pipe, {
+      const observerResult = await agentSpecObserver(leader, pipe, {
         apiKey: state.apiKey,
         model: state.model,
         signal: ctrl.signal,
-        specText: state.specText,
         specAnalysis: state.specAnalysis,
-        calibrationCtx: state.calibrationCtx,
       });
       dispatch({
         type: 'UPDATE_PIPELINE',
         payload: {
           name: leader.name,
           data: {
-            scoring: {
-              overallScore: scoringResult.overall,
-              label: scoringResult.label,
-              dataQualityWarning: scoringResult.dataQualityWarning,
-              criteria: scoringResult.criteria,
-              strengths: scoringResult.strengths,
-              gaps: scoringResult.gaps,
-              recommendation: scoringResult.recommendation,
+            observations: {
+              observations: observerResult.observations || [],
+              legalFlags: observerResult.legalFlags || [],
+              regulatoryFlags: observerResult.regulatoryFlags || [],
             },
             state: 'done',
             completedAgents: [...(pipe.completedAgents || []), 6],
@@ -201,7 +192,7 @@ export default function TalentView() {
         },
       });
     } catch (err) {
-      if (err.name !== 'AbortError') toast('Scoring failed: ' + err.message);
+      if (err.name !== 'AbortError') toast('Observer failed: ' + err.message);
     } finally {
       if (!ctrlOverride) {
         dispatch({ type: 'SET_RESEARCHING', payload: false });
@@ -325,8 +316,8 @@ export default function TalentView() {
     }
   }
 
-  function handleRunScore() {
-    if (currentLeader) runScoreForLeader(currentLeader);
+  function handleRunObserver() {
+    if (currentLeader) runObserverForLeader(currentLeader);
   }
 
   return (
@@ -367,7 +358,7 @@ export default function TalentView() {
             onTabChange={setActiveTab}
             onBackToDashboard={() => setView(VIEWS.DB)}
             onStopResearch={handleStopResearch}
-            onRunScore={handleRunScore}
+            onRunObserver={handleRunObserver}
             onRunQuestions={handleRunQuestions}
             onRunLookalikes={handleRunLookalikes}
             searchActive={searchActive}

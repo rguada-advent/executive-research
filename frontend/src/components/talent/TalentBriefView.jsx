@@ -5,15 +5,15 @@ import SearchIndicator from '../shared/SearchIndicator';
 import ExportButton from '../shared/ExportButton';
 import ProfileTab from './tabs/ProfileTab';
 import LookalikesTab from './tabs/LookalikesTab';
-import ScorecardTab from './tabs/ScorecardTab';
+import SpecMirrorTab from './tabs/SpecMirrorTab';
 import QuestionsTab from './tabs/QuestionsTab';
 import { TALENT_PIPELINE_STAGES } from '../../utils/constants';
 
 const ALL_TABS = [
   { id: 'profile',    label: 'Profile',         always: true },
   { id: 'lookalikes', label: 'Lookalikes',      always: true },
-  { id: 'scorecard',  label: 'Fit Assessment',  requiresSpec: true },
-  { id: 'questions',  label: 'Questions',       requiresSpec: true },
+  { id: 'mirror',     label: 'Spec Mirror',     requiresSpec: true },
+  { id: 'questions',  label: 'Discussion Guide', requiresSpec: true },
 ];
 
 export default function TalentBriefView({
@@ -22,7 +22,7 @@ export default function TalentBriefView({
   onTabChange,
   onBackToDashboard,
   onStopResearch,
-  onRunScore,
+  onRunObserver,
   onRunQuestions,
   onRunLookalikes,
   searchActive,
@@ -36,7 +36,7 @@ export default function TalentBriefView({
 
   const pipe = pipeline[leader.name] || {};
   const brief = pipe.brief || null;
-  const scoring = pipe.scoring || null;
+  const observations = pipe.observations || null;
   const questions = pipe.questions || null;
   const lookalikes = pipe.lookalikes || null;
   const isResearching = researching && pipe.state !== 'done';
@@ -136,12 +136,14 @@ export default function TalentBriefView({
             onRunLookalikes={onRunLookalikes}
           />
         )}
-        {activeTab === 'scorecard' && (
-          <ScorecardTab
-            scoring={scoring}
+        {activeTab === 'mirror' && (
+          <SpecMirrorTab
+            observations={observations}
             leaderName={leader.name}
-            onRunScore={onRunScore}
+            specAnalysis={specAnalysis}
             specLoaded={!!specAnalysis}
+            onRunObserver={onRunObserver}
+            loading={isResearching && pipe.state === 'observations'}
           />
         )}
         {activeTab === 'questions' && (
