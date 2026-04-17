@@ -32,7 +32,7 @@ export default function PrivacyNotice() {
             <strong>Where data is stored:</strong> All research data is stored <strong>locally on your device only</strong>. No candidate data is transmitted to PSG servers.
           </p>
           <p>
-            <strong>Third-party AI:</strong> Executive names and publicly available information are sent to Anthropic's Claude API to generate research summaries. Anthropic's privacy policy applies to this processing.
+            <strong>Third-party AI:</strong> Executive names and publicly available information are sent to the selected AI provider (Anthropic, OpenAI, or Google Gemini) to generate research summaries. The selected provider's privacy policy applies to this processing.
           </p>
           <p>
             <strong>Your rights:</strong> You may delete all locally stored research data at any time using the "Clear All Data" option in the header.

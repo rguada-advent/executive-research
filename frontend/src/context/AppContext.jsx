@@ -8,7 +8,8 @@ const AppContext = createContext(null);
 const BACKEND = window.psgApp?.isElectron ? 'http://127.0.0.1:5001' : '/api';
 
 // Per-session auth token injected by the Electron preload. REQUIRED on every
-// /claude/* and /proxy/* request since v1.5.3 added backend enforcement.
+// /claude/* and /proxy/* request — backend enforces this to prevent other
+// local processes from calling the Flask API without the session token.
 // Without this, config saves and status checks silently 401 → user sees
 // "API key not configured" errors even after they enter their key.
 function localAuthHeaders() {

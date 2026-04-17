@@ -8,7 +8,7 @@ import { callClaude } from '../claudeApi';
  * Output is a structured set of factual observations per requirement,
  * suitable for investment due diligence use only.
  *
- * Replaces: scoring.js (removed in v1.5.8 for FCRA compliance)
+ * Replaces: scoring.js (removed in v2.0.0 for FCRA compliance)
  */
 export async function agentSpecObserver(leader, pipe, { apiKey, model, signal, specAnalysis }) {
   const company = leader.company ? ' at ' + leader.company : '';
