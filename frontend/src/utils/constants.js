@@ -2,16 +2,17 @@ export const MODES = { TALENT: 'talent', FORENSIC: 'forensic' };
 
 export const MODELS = [
   // ── Anthropic Claude ───────────────────────────────────────────────────────
-  { value: 'claude-opus-4-6',           label: 'Claude Opus 4.6',    provider: 'anthropic' },
-  { value: 'claude-sonnet-4-6',         label: 'Claude Sonnet 4.6',  provider: 'anthropic' },
-  { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5',   provider: 'anthropic' },
+  { value: 'claude-opus-4-7',           label: 'Claude Opus 4.7',         provider: 'anthropic' },
+  { value: 'claude-sonnet-4-6',         label: 'Claude Sonnet 4.6',       provider: 'anthropic' },
+  { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5',        provider: 'anthropic' },
   // ── OpenAI ────────────────────────────────────────────────────────────────
-  { value: 'gpt-4o',                    label: 'GPT-4o',             provider: 'openai' },
-  { value: 'gpt-4o-mini',               label: 'GPT-4o Mini',        provider: 'openai' },
-  { value: 'o3',                        label: 'o3 (Reasoning)',      provider: 'openai' },
+  { value: 'gpt-5.4',                   label: 'GPT-5.4',                 provider: 'openai' },
+  { value: 'gpt-5.4-mini',              label: 'GPT-5.4 Mini',            provider: 'openai' },
+  { value: 'o3',                        label: 'o3 (Reasoning)',           provider: 'openai' },
   // ── Google Gemini ─────────────────────────────────────────────────────────
-  { value: 'gemini-2.0-flash',          label: 'Gemini 2.0 Flash',   provider: 'gemini' },
-  { value: 'gemini-1.5-pro',            label: 'Gemini 1.5 Pro',     provider: 'gemini' },
+  { value: 'gemini-2.5-pro',            label: 'Gemini 2.5 Pro',          provider: 'gemini' },
+  { value: 'gemini-2.5-flash',          label: 'Gemini 2.5 Flash',        provider: 'gemini' },
+  { value: 'gemini-2.5-flash-lite',     label: 'Gemini 2.5 Flash Lite',   provider: 'gemini' },
 ];
 
 export const PROVIDER_LABELS = {

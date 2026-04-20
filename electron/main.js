@@ -251,6 +251,18 @@ function createWindow() {
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
+    mainWindow.focus(); // Ensure keyboard focus on Windows after show()
+  });
+
+  // F12 / Ctrl+Shift+I opens DevTools in production for diagnostics.
+  mainWindow.webContents.on('before-input-event', (_event, input) => {
+    if (
+      input.type === 'keyDown' &&
+      (input.key === 'F12' ||
+        (input.control && input.shift && input.key.toUpperCase() === 'I'))
+    ) {
+      if (mainWindow) mainWindow.webContents.toggleDevTools();
+    }
   });
 
   mainWindow.on('closed', () => {
