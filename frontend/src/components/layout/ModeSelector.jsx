@@ -16,7 +16,7 @@ const MODE_META = {
   },
   [MODES.FORENSIC]: {
     title: 'Forensic Intelligence',
-    tagline: 'Deep management intelligence: legal, regulatory, social & verification',
+    tagline: 'Due Diligence management intelligence: legal, regulatory, social & verification',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <circle cx="11" cy="11" r="8" />

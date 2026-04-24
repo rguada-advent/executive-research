@@ -92,7 +92,7 @@ export default function SubjectInput({ onStart }) {
         </div>
         <h2 className="text-2xl font-bold text-advent-navy tracking-tight">Executive Research</h2>
         <p className="text-sm text-advent-gray-500 mt-2 max-w-2xl leading-relaxed">
-          Add executives for deep background investigation. Each subject is researched across
+          Add executives for due diligence-focused background investigation. Each subject is researched across
           professional history, social media, legal databases, and regulatory filings — then
           verified by an adversarial agent for confidence scoring.
         </p>

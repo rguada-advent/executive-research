@@ -7,8 +7,8 @@ const https = require('https');
 const fs = require('fs');
 const os = require('os');
 
-const GITHUB_OWNER = 'cuufan';
-const GITHUB_REPO = 'psg-executive-intelligence';
+const GITHUB_OWNER = 'rguada-advent';
+const GITHUB_REPO = 'executive-research';
 
 const PSG_LOCAL_TOKEN = randomUUID();
 
@@ -254,16 +254,20 @@ function createWindow() {
     mainWindow.focus(); // Ensure keyboard focus on Windows after show()
   });
 
-  // F12 / Ctrl+Shift+I opens DevTools in production for diagnostics.
-  mainWindow.webContents.on('before-input-event', (_event, input) => {
-    if (
-      input.type === 'keyDown' &&
-      (input.key === 'F12' ||
-        (input.control && input.shift && input.key.toUpperCase() === 'I'))
-    ) {
-      if (mainWindow) mainWindow.webContents.toggleDevTools();
-    }
-  });
+  // DevTools is intentionally NOT exposed in production.
+  // `window.psgApp.localToken` would be readable via the console, defeating
+  // per-session auth. Opt-in via `PSG_ENABLE_DEVTOOLS=1` env var for diagnostics.
+  if (process.env.PSG_ENABLE_DEVTOOLS === '1') {
+    mainWindow.webContents.on('before-input-event', (_event, input) => {
+      if (
+        input.type === 'keyDown' &&
+        (input.key === 'F12' ||
+          (input.control && input.shift && input.key.toUpperCase() === 'I'))
+      ) {
+        if (mainWindow) mainWindow.webContents.toggleDevTools();
+      }
+    });
+  }
 
   mainWindow.on('closed', () => {
     mainWindow = null;

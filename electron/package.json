@@ -1,6 +1,6 @@
 {
   "name": "psg-executive-intelligence",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "PSG Human Capital Executive Intelligence - Talent Discovery & Forensic Background Analysis",
   "main": "main.js",
   "author": "PSG Human Capital",
@@ -69,8 +69,8 @@
     "asar": false,
     "publish": {
       "provider": "github",
-      "owner": "cuufan",
-      "repo": "psg-executive-intelligence"
+      "owner": "rguada-advent",
+      "repo": "executive-research"
     }
   }
 }
