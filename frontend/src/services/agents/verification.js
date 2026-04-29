@@ -3,7 +3,6 @@ import { callClaude } from '../claudeApi';
 export async function agentVerification(leader, pipe, { apiKey, model, signal }) {
   const company = leader.company ? ' at ' + leader.company : '';
   const profData = typeof pipe.professional === 'string' ? pipe.professional : JSON.stringify(pipe.professional);
-  const contactData = pipe.contact ? JSON.stringify(pipe.contact) : 'No contact data';
   const socialData = pipe.social ? JSON.stringify(pipe.social) : 'No social data';
   const glassdoorData = pipe.glassdoor ? JSON.stringify(pipe.glassdoor) : 'No glassdoor data';
   const legalData = pipe.legal ? JSON.stringify(pipe.legal) : 'No legal data';
@@ -15,9 +14,6 @@ SUBJECT: ${leader.name}, ${leader.title}${company}
 
 === PROFESSIONAL RESEARCH ===
 ${(profData || '').slice(0, 12000)}
-
-=== CONTACT ===
-${(contactData || '').slice(0, 3000)}
 
 === SOCIAL MEDIA ===
 ${(socialData || '').slice(0, 5000)}
@@ -35,14 +31,13 @@ TASKS:
 1. Verify identity: Is this the SAME person across all sources?
 2. Cross-validate: Do dates, titles, companies match across sources?
 3. Search for: "${leader.name}" + "fraud"/"scandal"/"fired"/"controversy"
-4. Verify: degrees claimed, board seats, certifications
-5. Flag: Any contradictions between data sources
-6. Assign confidence: VERIFIED/LIKELY/UNVERIFIED/CONTRADICTED/NOT_FOUND
+4. Flag: Any contradictions between data sources
+5. Assign confidence: VERIFIED/LIKELY/UNVERIFIED/CONTRADICTED/NOT_FOUND
 
 CRITICAL CITATION REQUIREMENT: Every verified fact MUST include source URLs. Facts without URLs must be downgraded to LIKELY confidence at most. Include url and title for every source.
 
 Return ONLY valid JSON:
-{"identityConfirmed":true,"identityNotes":"...","verifiedFacts":[{"claim":"...","confidence":"VERIFIED","sources":[{"url":"...","title":"..."}],"notes":""}],"contradictions":[{"claim":"...","agentSource":"...","conflictingEvidence":"...","resolution":"...","severity":"high|medium|low"}],"redFlags":[{"flag":"...","source":{"url":"...","title":"..."},"severity":"high|medium|low","details":"..."}],"overallConfidenceScore":0.78,"confidenceBreakdown":{"identity":"VERIFIED","currentRole":"VERIFIED","careerHistory":"LIKELY","education":"UNVERIFIED","achievements":"LIKELY","contactInfo":"MIXED","legalFindings":"VERIFIED","regulatoryFindings":"VERIFIED"},"recommendedFollowUp":["..."],"sourcesAppendix":[{"url":"...","title":"...","relevance":"..."}]}`;
+{"identityConfirmed":true,"identityNotes":"...","verifiedFacts":[{"claim":"...","confidence":"VERIFIED","sources":[{"url":"...","title":"..."}],"notes":""}],"contradictions":[{"claim":"...","agentSource":"...","conflictingEvidence":"...","resolution":"...","severity":"high|medium|low"}],"redFlags":[{"flag":"...","source":{"url":"...","title":"..."},"severity":"high|medium|low","details":"..."}],"overallConfidenceScore":0.78,"confidenceBreakdown":{"identity":"VERIFIED","currentRole":"VERIFIED","careerHistory":"LIKELY","achievements":"LIKELY","legalFindings":"VERIFIED","regulatoryFindings":"VERIFIED"},"recommendedFollowUp":["..."],"sourcesAppendix":[{"url":"...","title":"...","relevance":"..."}]}`;
 
   const emptyResult = {
     identityConfirmed: false,
