@@ -61,10 +61,6 @@ export async function agentBriefSynthesizer(leader, pipe, { apiKey, model, signa
     vCtx = `\n=== VERIFICATION ===\nConfidence: ${((v.overallConfidenceScore || 0) * 100).toFixed(0)}%\nFacts:\n${(v.verifiedFacts || []).map(f => '- ' + f.claim + ': [' + f.confidence + ']').join('\n')}\n${(v.contradictions || []).length ? 'Contradictions:\n' + v.contradictions.map(c => '- ' + c.claim + ': ' + c.conflictingEvidence).join('\n') : ''}\n${(v.redFlags || []).length ? 'Red Flags:\n' + v.redFlags.map(r => '- [' + (r.severity || '').toUpperCase() + '] ' + r.flag).join('\n') : ''}`;
   }
 
-  const contactBlock = pipe.contact
-    ? '\n=== CONTACT DATA ===\n' + JSON.stringify(pipe.contact, null, 2).slice(0, 5000)
-    : '';
-
   const socialBlock = pipe.social
     ? '\n=== SOCIAL MEDIA ===\n' + JSON.stringify(pipe.social, null, 2).slice(0, 5000)
     : '';
@@ -85,7 +81,7 @@ export async function agentBriefSynthesizer(leader, pipe, { apiKey, model, signa
 
   const profBrief = typeof pipe.professional === 'string' ? pipe.professional : '';
 
-  const prompt = `You are a forensic intelligence report writer. Compile a comprehensive background investigation report for ${leader.name}, ${leader.title}${company}.\n\nRULES:\n${hasV ? '- Tag facts: [VERIFIED], [LIKELY], [UNVERIFIED], [CONTRADICTED]\n- Include "Due Diligence Alerts" if any red flags\n- Include "Verification Summary" at end' : '- Mark all facts as [Unverified] since verification was unavailable'}\n- Include source URLs as inline links\n- Include ALL contact info and social profiles\n- PROMINENTLY feature any legal or regulatory findings\n- Include risk assessment\n- Always include a "Network Proximity & LinkedIn Connections" section. If LinkedIn data is unavailable, state that in that section rather than omitting it.\n\n=== PROFESSIONAL RESEARCH ===\n${profBrief.slice(0, 15000)}\n${contactBlock}\n${socialBlock}\n${linkedinBlock}\n${glassdoorBlock}\n${legalBlock}\n${regBlock}\n${vCtx}\n\nFormat as markdown:\n# ${leader.name}\n**${leader.title}${company}**\n*Investigation Confidence: X%*\n\n## Executive Summary\n## Professional Background\n## Career History\n## Education & Credentials\n## Contact Information\n## Social Media & Digital Footprint\n## Network Proximity & LinkedIn Connections\n## Glassdoor & Culture Intelligence\n## Board Memberships & Advisory Roles\n## Legal History\n## Regulatory Record\n## Due Diligence Alerts\n## Risk Assessment\n## Verification Summary`;
+  const prompt = `You are a forensic intelligence report writer. Compile a comprehensive background investigation report for ${leader.name}, ${leader.title}${company}.\n\nRULES:\n${hasV ? '- Tag facts: [VERIFIED], [LIKELY], [UNVERIFIED], [CONTRADICTED]\n- Include "Due Diligence Alerts" if any red flags\n- Include "Verification Summary" at end' : '- Mark all facts as [Unverified] since verification was unavailable'}\n- Include source URLs as inline links\n- Include social profiles\n- PROMINENTLY feature any legal or regulatory findings\n- Include risk assessment\n- Always include a "Network Proximity & LinkedIn Connections" section. If LinkedIn data is unavailable, state that in that section rather than omitting it.\n\n=== PROFESSIONAL RESEARCH ===\n${profBrief.slice(0, 15000)}\n${socialBlock}\n${linkedinBlock}\n${glassdoorBlock}\n${legalBlock}\n${regBlock}\n${vCtx}\n\nFormat as markdown:\n# ${leader.name}\n**${leader.title}${company}**\n*Investigation Confidence: X%*\n\n## Executive Summary\n## Professional Background\n## Career History\n## Social Media & Digital Footprint\n## Network Proximity & LinkedIn Connections\n## Glassdoor & Culture Intelligence\n## Board Memberships & Advisory Roles\n## Legal History\n## Regulatory Record\n## Due Diligence Alerts\n## Risk Assessment\n## Verification Summary`;
 
   try {
     const r = await callClaude(
