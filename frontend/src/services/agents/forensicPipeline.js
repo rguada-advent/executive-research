@@ -1,5 +1,4 @@
 import { agentProfessionalResearch } from './professionalResearch';
-import { agentContactIntelligence } from './contactIntelligence';
 import { agentSocialMedia } from './socialMedia';
 import { agentGlassdoor } from './glassdoor';
 import { agentLegalResearch } from './legalResearch';
@@ -41,7 +40,7 @@ export async function runForensicPipeline(leader, {
 
   // Tracked state for building pipe snapshot
   let pipeState = {
-    professional: null, contact: null, social: null,
+    professional: null, social: null,
     glassdoor: null, linkedin: null, legal: null,
     regulatory: null, verification: null, brief: null,
     completedAgents: [], failedAgents: [],
@@ -83,16 +82,15 @@ export async function runForensicPipeline(leader, {
       })
     );
     onSearch?.(false);
-    update({ professional, state: 'contact' });
+    update({ professional, state: 'social' });
     markCompleted(1);
     if (signal?.aborted) return;
 
-    // Parallel agents: 2 (contact), 3 (social), 13 (glassdoor), 10 (legal), 11 (regulatory), 12 (linkedin via web search)
+    // Parallel agents: 3 (social), 13 (glassdoor), 10 (legal), 11 (regulatory), 12 (linkedin via web search)
     // Glassdoor and LinkedIn get maxRetries=2 because they're most prone to
     // Anthropic rate-limit rejections (heavy web-search prompts) and the
     // longer retry window gives them time to recover from a 60s RPM cap.
-    const [cRes, sRes, gdRes, lRes, rRes, liRes] = await Promise.allSettled([
-      withRetry(() => agentContactIntelligence(leader, { apiKey, model, signal }), 1),
+    const [sRes, gdRes, lRes, rRes, liRes] = await Promise.allSettled([
       withRetry(() => agentSocialMedia(leader, { apiKey, model, signal }), 1),
       withRetry(() => agentGlassdoor(leader, { apiKey, model, signal }), 2),
       withRetry(() => agentLegalResearch(leader, { apiKey, model, signal, clToken }), 1),
@@ -100,16 +98,14 @@ export async function runForensicPipeline(leader, {
       withRetry(() => agentLinkedInResearch(leader, { apiKey, model, signal }), 2),
     ]);
 
-    const contact = cRes.status === 'fulfilled' ? cRes.value : null;
     const social = sRes.status === 'fulfilled' ? sRes.value : null;
     const glassdoor = gdRes.status === 'fulfilled' ? gdRes.value : null;
     const legal = lRes.status === 'fulfilled' ? lRes.value : null;
     const regulatory = rRes.status === 'fulfilled' ? rRes.value : null;
     const linkedinResult = liRes.status === 'fulfilled' ? liRes.value : null;
 
-    update({ contact, social, glassdoor, legal, regulatory, linkedin: linkedinResult });
+    update({ social, glassdoor, legal, regulatory, linkedin: linkedinResult });
 
-    if (cRes.status === 'fulfilled') markCompleted(2); else markFailed(2, cRes.reason?.message);
     if (sRes.status === 'fulfilled') markCompleted(3); else markFailed(3, sRes.reason?.message);
     if (gdRes.status === 'fulfilled') markCompleted(13); else markFailed(13, gdRes.reason?.message);
     if (lRes.status === 'fulfilled') markCompleted(10); else markFailed(10, lRes.reason?.message);
@@ -128,7 +124,7 @@ export async function runForensicPipeline(leader, {
     update({ state: 'verification' });
     onSearch?.(true, 'Verifying facts');
     try {
-      const pipeSnashot = { professional, contact, social, glassdoor, legal, regulatory, linkedin: linkedinResult };
+      const pipeSnashot = { professional, social, glassdoor, legal, regulatory, linkedin: linkedinResult };
       const verification = await agentVerification(leader, pipeSnashot, { apiKey, model, signal });
       onSearch?.(false);
       update({ verification, overallConfidence: verification.overallConfidenceScore });
