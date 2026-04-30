@@ -22,7 +22,6 @@ FOCUS ON:
 - LinkedIn profile URL (exact URL)
 - Current role: title, company, approximate start date
 - Previous role (1 most recent): title, company, duration
-- Education: highest degree only
 - Location (city/metro area)
 - One-line professional summary
 
@@ -33,7 +32,6 @@ Return ONLY valid JSON:
   "linkedinUrl": "https://www.linkedin.com/in/...",
   "currentRole": {"title": "...", "company": "...", "startDate": "..."},
   "previousRole": {"title": "...", "company": "...", "duration": "..."},
-  "education": "...",
   "location": "...",
   "summary": "One sentence describing this executive's background and expertise.",
   "profileFound": true
@@ -48,7 +46,7 @@ If the person cannot be found, set profileFound to false.`;
 
   const defaults = {
     linkedinUrl: '', currentRole: null, previousRole: null,
-    education: '', location: '', summary: '', profileFound: false,
+    location: '', summary: '', profileFound: false,
   };
 
   let text = (result || '').replace(/```json\s*/gi, '').replace(/```\s*/g, '');
