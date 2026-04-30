@@ -38,7 +38,6 @@ export const SENIORITY_OPTIONS = [
 
 export const FORENSIC_PIPELINE_STAGES = [
   { id: 'professional', agent: 1, label: 'Professional', required: true },
-  { id: 'contact', agent: 2, label: 'Contact', required: false },
   { id: 'social', agent: 3, label: 'Social', required: false },
   { id: 'glassdoor', agent: 13, label: 'Glassdoor', required: false },
   { id: 'linkedin', agent: 12, label: 'LinkedIn', required: false },
@@ -50,7 +49,6 @@ export const FORENSIC_PIPELINE_STAGES = [
 
 export const TALENT_PIPELINE_STAGES = [
   { id: 'research',      agent: 1,  label: 'Research',   required: true },
-  { id: 'contact',       agent: 2,  label: 'Contact',    required: false },
   { id: 'lookalikes',    agent: 14, label: 'Lookalikes', required: false },
   { id: 'observations',  agent: 6,  label: 'Observe',    required: false },
   { id: 'questions',     agent: 8,  label: 'Guide',      required: false },
