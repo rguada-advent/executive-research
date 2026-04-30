@@ -9,7 +9,6 @@ import TalentBriefView from './TalentBriefView';
 import SearchHistory, { addToHistory, checkHistory } from './SearchHistory';
 
 import { agentTalentResearch } from '../../services/agents/talentResearch';
-import { agentContactIntelligence } from '../../services/agents/contactIntelligence';
 import { agentLookalikes } from '../../services/agents/lookalikes';
 import { agentSpecObserver } from '../../services/agents/specObserver';
 import { agentQuestions } from '../../services/agents/questions';
@@ -47,7 +46,7 @@ export default function TalentView() {
     }
   }
 
-  // Main research pipeline: Research → Contact (parallel) → auto-score if spec loaded
+  // Main research pipeline: Research → auto-score if spec loaded
   const runResearch = useCallback(async (leader) => {
     if (!state.apiKey) { toast('Please configure your API key.'); return; }
 
@@ -76,7 +75,6 @@ export default function TalentView() {
           `## Summary\n${research.summary || 'No summary available.'}\n\n` +
           `## Current Role\n${research.currentRole ? `**${research.currentRole.title}** at ${research.currentRole.company}${research.currentRole.startDate ? ' (since ' + research.currentRole.startDate + ')' : ''}` : 'Not found.'}\n\n` +
           `## Previous Role\n${research.previousRole ? `**${research.previousRole.title}** at ${research.previousRole.company}${research.previousRole.duration ? ' (' + research.previousRole.duration + ')' : ''}` : 'Not found.'}\n\n` +
-          `## Education\n${research.education || 'Not found.'}\n\n` +
           `## Location\n${research.location || 'Not found.'}\n\n` +
           (research.linkedinUrl ? `## LinkedIn\n[View Profile](${research.linkedinUrl})\n` : '')
         : `# ${leader.name}\n**${leader.title}${leader.company ? ' at ' + leader.company : ''}**\n\nProfile not found via web search. Try verifying the name and company.`;
@@ -91,37 +89,6 @@ export default function TalentView() {
           },
         },
       });
-
-      // Agent 2: Contact Intelligence (parallel, non-blocking)
-      dispatch({ type: 'UPDATE_PIPELINE', payload: { name: leader.name, data: { state: 'contact' } } });
-      setSearchLabel('Finding contact information');
-
-      try {
-        const contact = await agentContactIntelligence(leader, {
-          apiKey: state.apiKey,
-          model: state.model,
-          signal: ctrl.signal,
-        });
-        dispatch({
-          type: 'UPDATE_PIPELINE',
-          payload: { name: leader.name, data: { contact, completedAgents: [1, 2] } },
-        });
-
-        // Append contact info to brief
-        if (contact && (contact.professionalEmails?.length || contact.phones?.length)) {
-          const contactSection = '\n\n## Contact Information\n' +
-            (contact.professionalEmails || []).map(e => `- Email: ${e.email} [${e.type || 'unknown'}] (${e.confidence || 'low'})`).join('\n') +
-            ((contact.phones || []).length ? '\n' + contact.phones.map(p => `- Phone: ${p.number} [${p.type || 'unknown'}]`).join('\n') : '') +
-            (contact.officeAddress?.address ? `\n- Office: ${contact.officeAddress.address}` : '');
-          dispatch({
-            type: 'UPDATE_PIPELINE',
-            payload: { name: leader.name, data: { brief: briefText + contactSection } },
-          });
-        }
-      } catch (err) {
-        if (err.name === 'AbortError') throw err;
-        console.warn('Contact agent failed:', err.message);
-      }
 
       // Mark done
       dispatch({
